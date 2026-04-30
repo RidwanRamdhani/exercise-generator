@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Compiled output
+out/
+dist/
+**/*.js
+**/*.js.map
+!jest.config.js
+
+# Package
+*.vsix
+
+# Testing
+.vscode-test/
+
+# Env
+.env
+
+# OS
+.DS_Store
+Thumbs.db
