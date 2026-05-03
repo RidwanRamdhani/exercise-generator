@@ -1,26 +1,75 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    const myButton = vscode.window.createStatusBarItem(
+        vscode.StatusBarAlignment.Right, 
+        100
+    );
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "exercise-generator" is now active!');
+    myButton.text = "$(add) More exercise";
+    myButton.tooltip = "Klik untuk menambah exercise";
+    myButton.command = "exercise-generator.moreExercise";
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('exercise-generator.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from exercise-generator!');
-	});
+    const cmd = vscode.commands.registerCommand('exercise-generator.moreExercise', async () => {
+         const topicInput = await vscode.window.showInputBox({
+            placeHolder: "String, List, Nested List, etc",
+            prompt: "Enter the topic for the exercise",          
+            value: ""             
+        });
 
-	context.subscriptions.push(disposable);
+        if (topicInput === undefined) {
+            vscode.window.showWarningMessage("Canceled at input topic");
+            return;
+        }
+
+		const difficultyInput = await vscode.window.showQuickPick([
+			{ label: 'Easy', description: 'Uses basic concepts with straightforward logic' },
+			{ label: 'Medium', description: 'Combines multiple concepts with more complex reasoning' },
+			{ label: 'Hard', description: 'Requires deeper understanding and advanced problem-solving skills' }
+		], {
+			placeHolder: 'Choose difficulty'
+		});
+
+		if (!difficultyInput) {
+            vscode.window.showWarningMessage("Canceled at choosing difficulty");
+            return;
+        }
+
+		const shotInput = await vscode.window.showQuickPick([
+			{ label: '0-shot', description: 'No examples provided in the prompt' },
+			{ label: '1-shot', description: 'One example to guide the model' },
+			{ label: '2-shot', description: 'Two examples for better context' },
+			{ label: '3-shot', description: 'Three examples for maximum guidance' }
+		], {
+			placeHolder: 'Choose Amount of Shot'
+		});
+
+		if (!shotInput) {
+			vscode.window.showWarningMessage("Canceled at choosing shot amount");
+			return;
+		}
+
+		const inputFilter = await vscode.window.showQuickPick([
+			{ label: 'Testcase Check'},
+			{ label: 'Difficulty Check' }
+		], {
+			canPickMany: true,
+			placeHolder: 'Choose exercise filter'
+		});
+
+		if (!inputFilter || inputFilter.length === 0) {
+			vscode.window.showWarningMessage("No filter selected");
+			return;
+		}
+
+		const filterLabels = inputFilter.map(f => f.label).join(', ');
+
+		vscode.window.showInformationMessage(`Exercise Topic: ${topicInput} | Exercise difficulty: ${difficultyInput.label} | Amount of shot: ${shotInput.label} | Filter Selected: ${filterLabels}`);
+    });
+
+    myButton.show();
+
+    context.subscriptions.push(myButton, cmd);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}
