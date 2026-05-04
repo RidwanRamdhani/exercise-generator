@@ -1,9 +1,14 @@
 import * as assert from 'assert';
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
+import {
+	DIFFICULTY_OPTIONS,
+	SHOT_OPTIONS,
+	FILTER_OPTIONS,
+	Difficulty,
+	Shot
+} from '../types/exercise';
+import { exerciseGeneratorCommand } from '../commands/exerciseGenerator';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -11,5 +16,30 @@ suite('Extension Test Suite', () => {
 	test('Sample test', () => {
 		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
 		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
+	});
+
+	test('Difficulty options should contain Easy, Medium, Hard', () => {
+		const labels = DIFFICULTY_OPTIONS.map(o => o.label);
+		assert.strictEqual(labels.includes('Easy' as Difficulty), true);
+		assert.strictEqual(labels.includes('Medium' as Difficulty), true);
+		assert.strictEqual(labels.includes('Hard' as Difficulty), true);
+	});
+
+	test('Shot options should contain 0-shot through 3-shot', () => {
+		const labels = SHOT_OPTIONS.map(o => o.label);
+		assert.strictEqual(labels.includes('0-shot' as Shot), true);
+		assert.strictEqual(labels.includes('1-shot' as Shot), true);
+		assert.strictEqual(labels.includes('2-shot' as Shot), true);
+		assert.strictEqual(labels.includes('3-shot' as Shot), true);
+	});
+
+	test('Filter options should contain Testcase Check and Difficulty Check', () => {
+		const labels = FILTER_OPTIONS.map(o => o.label);
+		assert.strictEqual(labels.includes('Testcase Check'), true);
+		assert.strictEqual(labels.includes('Difficulty Check'), true);
+	});
+
+	test('exerciseGeneratorCommand is a function', () => {
+		assert.strictEqual(typeof exerciseGeneratorCommand, 'function');
 	});
 });
