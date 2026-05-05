@@ -9,7 +9,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [""],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -17,7 +17,26 @@
         "command": "exercise-generator.moreExercise",
         "title": "More Exercise"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "exercise-generator",
+          "title": "Exercise",
+          "icon": "resources/icon2.png"
+        }
+      ]
+    },
+    "views": {
+      "exercise-generator" :[
+        {
+          "id": "exerciseView",
+          "name": "Exercise Panel",
+          "type": "webview",
+          "icon": "resources/icon2.png"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
