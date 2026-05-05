@@ -8,8 +8,9 @@ import {
 	showCancelledMessage,
 	showExerciseSummary
 } from '../dialogs';
+import { ExerciseViewProvider } from '../views/ExerciseViewProvider'; // ← tambah ini
 
-export async function exerciseGeneratorCommand(): Promise<void> {
+export async function exerciseGeneratorCommand(viewProvider: ExerciseViewProvider): Promise<void> { // ← tambah parameter
 	const topicInput = await askForTopic();
 	if (topicInput === undefined) {
 		showCancelledMessage('input topic');
@@ -50,4 +51,6 @@ export async function exerciseGeneratorCommand(): Promise<void> {
 
 	// TODO: Implement actual exercise generation using config
 	console.log('Exercise configuration:', config);
+
+	viewProvider.addExercise(); // ← tambah ini (dummy, nanti diganti hasil LLM)
 }
