@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const cmd = vscode.commands.registerCommand(
 		'exercise-generator.moreExercise',
-		() => exerciseGeneratorCommand(viewProvider) // ← pass viewProvider
+		() => exerciseGeneratorCommand(viewProvider)
 	);
 
 	context.subscriptions.push(myButton, cmd, view);

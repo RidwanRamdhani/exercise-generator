@@ -260,8 +260,6 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     if (data.type === 'update') render(data.exercises);
   });
 
-  // ── Event delegation: satu listener untuk seluruh list ──
-  // Dipasang sekali saja, tidak hilang saat innerHTML di-replace
   $list.addEventListener('click', (e) => {
   const btnArrow = e.target.closest('.btn-arrow');
   if (btnArrow) {
@@ -291,7 +289,6 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     $empty.style.display = 'none';
     $list.style.display  = 'flex';
 
-    // Simpan collapse state sebelum re-render
     const collapsed = new Set(
       [...$list.querySelectorAll('.card-head.collapsed')].map(h => h.dataset.id)
     );
