@@ -8,9 +8,13 @@ import {
 	showCancelledMessage,
 	showExerciseSummary
 } from '../dialogs';
-import { ExerciseViewProvider } from '../views/ExerciseViewProvider'; 
+import { ExerciseViewProvider } from '../views/ExerciseViewProvider';
+import { DatabaseService } from '../services/DatabaseService'; // ← tambah
 
-export async function exerciseGeneratorCommand(viewProvider: ExerciseViewProvider): Promise<void> {
+export async function exerciseGeneratorCommand(
+	viewProvider: ExerciseViewProvider,
+	db: DatabaseService // ← tambah
+): Promise<void> {
 	const topicInput = await askForTopic();
 	if (topicInput === undefined) {
 		showCancelledMessage('input topic');
@@ -49,8 +53,22 @@ export async function exerciseGeneratorCommand(viewProvider: ExerciseViewProvide
 		filterLabels: config.filters.join(', ')
 	});
 
-	// TODO: Implement actual exercise generation using config
-	console.log('Exercise configuration:', config);
+	// ── Ganti TODO di sini ──────────────────────────────────────
+	const diffMap: Record<Difficulty, 'easy' | 'intermediate' | 'hard'> = {
+		'Easy': 'easy', 'Medium': 'intermediate', 'Hard': 'hard'
+	};
+	const shotCountMap: Record<Shot, number> = {
+		'0-shot': 0, '1-shot': 1, '2-shot': 2, '3-shot': 3
+	};
 
-	viewProvider.addExercise(); 
+	const fewShotExamples = await db.getSeedsForShot(
+		diffMap[config.difficulty],
+		shotCountMap[config.shot]
+	);
+
+	console.log('[ExGen] Config:', config);
+	console.log('[ExGen] Few-shot examples:', fewShotExamples.map(e => e.title));
+	// ────────────────────────────────────────────────────────────
+
+	viewProvider.addExercise();
 }
