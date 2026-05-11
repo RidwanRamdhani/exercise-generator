@@ -9,11 +9,11 @@ import {
 	showExerciseSummary
 } from '../dialogs';
 import { ExerciseViewProvider } from '../views/ExerciseViewProvider';
-import { DatabaseService } from '../services/DatabaseService'; // ← tambah
+import { DatabaseService } from '../services/DatabaseService';
 
 export async function exerciseGeneratorCommand(
-	viewProvider: ExerciseViewProvider,
-	db: DatabaseService // ← tambah
+  viewProvider: ExerciseViewProvider,
+  db: DatabaseService
 ): Promise<void> {
 	const topicInput = await askForTopic();
 	if (topicInput === undefined) {
@@ -46,29 +46,27 @@ export async function exerciseGeneratorCommand(
 		filters: inputFilter.map(f => f.label)
 	};
 
-	showExerciseSummary({
-		topic: config.topic,
-		difficultyLabel: config.difficulty,
-		shotLabel: config.shot,
-		filterLabels: config.filters.join(', ')
-	});
+  showExerciseSummary({
+    topic: config.topic,
+    difficultyLabel: config.difficulty,
+    shotLabel: config.shot,
+    filterLabels: config.filters.join(', ')
+  });
 
-	// ── Ganti TODO di sini ──────────────────────────────────────
-	const diffMap: Record<Difficulty, 'easy' | 'intermediate' | 'hard'> = {
+  const diffMap: Record<Difficulty, 'easy' | 'intermediate' | 'hard'> = {
 		'Easy': 'easy', 'Medium': 'intermediate', 'Hard': 'hard'
 	};
 	const shotCountMap: Record<Shot, number> = {
 		'0-shot': 0, '1-shot': 1, '2-shot': 2, '3-shot': 3
 	};
 
-	const fewShotExamples = await db.getSeedsForShot(
-		diffMap[config.difficulty],
-		shotCountMap[config.shot]
-	);
+  const fewShotExamples = await db.getSeedsForShot(
+    diffMap[config.difficulty],
+    shotCountMap[config.shot]
+  );
 
-	console.log('[ExGen] Config:', config);
-	console.log('[ExGen] Few-shot examples:', fewShotExamples.map(e => e.title));
-	// ────────────────────────────────────────────────────────────
+  console.log('[ExGen] Config:', config);
+  console.log('[ExGen] Few-shot examples:', fewShotExamples.map(e => e.title));
 
-	viewProvider.addExercise();
+  viewProvider.addExercise();
 }

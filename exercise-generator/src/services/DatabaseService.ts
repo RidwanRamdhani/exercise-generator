@@ -20,11 +20,8 @@ export class DatabaseService {
   constructor(extensionPath: string) {
     this.scriptPath = path.join(extensionPath, 'tinydb_service.py');
     this.seedJsonPath = path.join(extensionPath, 'src', 'data', 'seed_exercises.json');
-    // Coba python3 dulu, fallback ke python
     this.pythonCmd = this._detectPython();
   }
-
-  // ── Private helpers ─────────────────────────────────────────
 
   private _detectPython(): string {
     try {
@@ -63,9 +60,6 @@ export class DatabaseService {
     });
   }
 
-  // ── Public API ───────────────────────────────────────────────
-
-  /** Import seed exercises ke TinyDB (dipanggil sekali saat activate) */
   async importSeeds(): Promise<void> {
     try {
       const result = await this._run(['import_seeds', this.seedJsonPath]);
@@ -75,7 +69,6 @@ export class DatabaseService {
     }
   }
 
-  /** Ambil N seed sesuai difficulty dan shot count untuk few-shot prompt */
   async getSeedsForShot(
     difficulty: 'easy' | 'intermediate' | 'hard',
     shotCount: number

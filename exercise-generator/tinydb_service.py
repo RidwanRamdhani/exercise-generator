@@ -4,14 +4,13 @@ import os
 import random
 from tinydb import TinyDB, Query
 
-# Path db.json disimpan di folder yang sama dengan script ini
 DB_PATH = os.path.join(os.path.dirname(__file__), 'db.json')
 
 def get_db():
     return TinyDB(DB_PATH)
 
 def import_seeds(seed_json_path: str):
-    """Import seed_exercises.json ke TinyDB, hanya kalau DB masih kosong."""
+    """Import seed exercises into TinyDB (only if DB is empty)."""
     db = get_db()
     if len(db.all()) > 0:
         print(json.dumps({"status": "skipped", "message": "DB already populated"}))
@@ -27,7 +26,7 @@ def import_seeds(seed_json_path: str):
     print(json.dumps({"status": "ok", "imported": len(seeds)}))
 
 def get_seeds_for_shot(difficulty: str, shot_count: int):
-    """Ambil N seed berdasarkan difficulty untuk few-shot examples."""
+    """Get N seeds based on difficulty for few-shot examples."""
     if shot_count == 0:
         print(json.dumps([]))
         return
@@ -54,14 +53,12 @@ def main():
     command = sys.argv[1]
 
     if command == 'import_seeds':
-        # python tinydb_service.py import_seeds <path_to_seed_json>
         if len(sys.argv) < 3:
             print(json.dumps({"error": "Missing seed path"}))
             sys.exit(1)
         import_seeds(sys.argv[2])
 
     elif command == 'get_seeds':
-        # python tinydb_service.py get_seeds <difficulty> <shot_count>
         if len(sys.argv) < 4:
             print(json.dumps({"error": "Missing difficulty or shot_count"}))
             sys.exit(1)

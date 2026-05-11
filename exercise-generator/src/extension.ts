@@ -1,14 +1,11 @@
 import * as vscode from 'vscode';
 import { exerciseGeneratorCommand } from './commands/exerciseGenerator';
 import { ExerciseViewProvider } from './views/ExerciseViewProvider';
-import { DatabaseService } from './services/DatabaseService'; // ← tambah
+import { DatabaseService } from './services/DatabaseService';
 
 export function activate(context: vscode.ExtensionContext) {
-
-  // ── Database setup ──────────────────────────────────────────
   const db = new DatabaseService(context.extensionPath);
-  db.importSeeds(); // async, jalan di background                ← tambah
-  // ────────────────────────────────────────────────────────────
+  db.importSeeds();
 
   const viewProvider = new ExerciseViewProvider(context.extensionUri);
 
@@ -28,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const cmd = vscode.commands.registerCommand(
     'exercise-generator.moreExercise',
-    () => exerciseGeneratorCommand(viewProvider, db) // ← tambah db
+    () => exerciseGeneratorCommand(viewProvider, db)
   );
 
   context.subscriptions.push(myButton, cmd, view);
