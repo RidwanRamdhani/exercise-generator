@@ -14,21 +14,48 @@ export function activate(context: vscode.ExtensionContext) {
     viewProvider
   );
 
-  const myButton = vscode.window.createStatusBarItem(
+  // More Exercise button
+  const moreExercise = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
     100
   );
-  myButton.text = "$(add) More exercise";
-  myButton.tooltip = "Klik untuk menambah exercise";
-  myButton.command = "exercise-generator.moreExercise";
-  myButton.show();
 
-  const cmd = vscode.commands.registerCommand(
+  moreExercise.text = "$(add) More exercise";
+  moreExercise.tooltip = "Klik untuk menambah exercise";
+  moreExercise.command = "exercise-generator.moreExercise";
+  moreExercise.show();
+
+
+  // Show Database button
+  const showDatabase = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    99
+  );
+
+  showDatabase.text = "Show Database";
+  showDatabase.tooltip = "Exercise yang tersimpan di database";
+  showDatabase.command = "exercise-generator.showDatabase";
+  showDatabase.show();
+
+  const moreExerciseCmd = vscode.commands.registerCommand(
     'exercise-generator.moreExercise',
     () => exerciseGeneratorCommand(viewProvider, db)
   );
 
-  context.subscriptions.push(myButton, cmd, view);
+  const showDatabaseCmd = vscode.commands.registerCommand(
+    'exercise-generator.showDatabase',
+    () => {
+      vscode.window.showInformationMessage("Open database");
+    }
+  );
+
+  context.subscriptions.push(
+    moreExercise,
+    showDatabase,
+    moreExerciseCmd,
+    showDatabaseCmd,
+    view
+  );
 }
 
 export function deactivate() {}

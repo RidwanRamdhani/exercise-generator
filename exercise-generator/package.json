@@ -18,6 +18,10 @@
       {
         "command": "exercise-generator.moreExercise",
         "title": "More Exercise"
+      },
+      {
+        "command": "exercise-generator.showDatabase",
+        "title": "Show Database"
       }
     ],
     "viewsContainers": {
