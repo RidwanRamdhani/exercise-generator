@@ -45,6 +45,15 @@ def get_seeds_for_shot(difficulty: str, shot_count: int):
 
     print(json.dumps(selected))
 
+def get_all_exercises():
+    """Get all exercises from the database, sorted by difficulty."""
+    db = get_db()
+    results = db.all()
+    # Sort by difficulty: easy -> intermediate -> hard, then by id
+    difficulty_order = {'easy': 0, 'intermediate': 1, 'hard': 2}
+    results.sort(key=lambda x: (difficulty_order.get(x.get('difficulty', ''), 99), x.get('id', 0)))
+    print(json.dumps(results))
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({"error": "No command provided"}))
@@ -65,6 +74,9 @@ def main():
         difficulty = sys.argv[2]
         shot_count = int(sys.argv[3])
         get_seeds_for_shot(difficulty, shot_count)
+
+    elif command == 'get_all':
+        get_all_exercises()
 
     else:
         print(json.dumps({"error": f"Unknown command: {command}"}))

@@ -1,17 +1,24 @@
 import * as vscode from 'vscode';
 import { exerciseGeneratorCommand } from './commands/exerciseGenerator';
 import { ExerciseViewProvider } from './views/ExerciseViewProvider';
+import { DatabaseViewProvider } from './views/DatabaseViewProvider';
 import { DatabaseService } from './services/DatabaseService';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   const db = new DatabaseService(context.extensionPath);
-  db.importSeeds();
+  await db.importSeeds();
 
   const viewProvider = new ExerciseViewProvider(context.extensionUri);
+  const dbViewProvider = new DatabaseViewProvider(context.extensionUri, db);
 
   const view = vscode.window.registerWebviewViewProvider(
     'exerciseView',
     viewProvider
+  );
+
+  const dbView = vscode.window.registerWebviewViewProvider(
+    'databaseView',
+    dbViewProvider
   );
 
   // More Exercise button
@@ -42,19 +49,20 @@ export function activate(context: vscode.ExtensionContext) {
     () => exerciseGeneratorCommand(viewProvider, db)
   );
 
-  const showDatabaseCmd = vscode.commands.registerCommand(
-    'exercise-generator.showDatabase',
-    () => {
-      vscode.window.showInformationMessage("Open database");
-    }
-  );
+   const showDatabaseCmd = vscode.commands.registerCommand(
+     'exercise-generator.showDatabase',
+     () => {
+       vscode.commands.executeCommand('databaseView.focus');
+     }
+   );
 
   context.subscriptions.push(
     moreExercise,
     showDatabase,
     moreExerciseCmd,
     showDatabaseCmd,
-    view
+    view,
+    dbView
   );
 }
 

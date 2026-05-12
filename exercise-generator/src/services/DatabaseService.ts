@@ -69,16 +69,28 @@ export class DatabaseService {
     }
   }
 
-  async getSeedsForShot(
-    difficulty: 'easy' | 'intermediate' | 'hard',
-    shotCount: number
-  ): Promise<SeedExercise[]> {
-    if (shotCount === 0) { return []; }
+   async getSeedsForShot(
+     difficulty: 'easy' | 'intermediate' | 'hard',
+     shotCount: number
+   ): Promise<SeedExercise[]> {
+     if (shotCount === 0) { return []; }
+     try {
+       const result = await this._run(['get_seeds', difficulty, String(shotCount)]);
+       return result as SeedExercise[];
+     } catch (err) {
+       console.error('[ExGen DB] getSeedsForShot failed:', err);
+       return [];
+     }
+   }
+
+  async getAllExercises(): Promise<SeedExercise[]> {
     try {
-      const result = await this._run(['get_seeds', difficulty, String(shotCount)]);
+      console.log('[ExGen DB] Calling get_all');
+      const result = await this._run(['get_all']);
+      console.log('[ExGen DB] get_all raw result type:', typeof result, 'length:', Array.isArray(result) ? result.length : 'not array');
       return result as SeedExercise[];
     } catch (err) {
-      console.error('[ExGen DB] getSeedsForShot failed:', err);
+      console.error('[ExGen DB] getAllExercises failed:', err);
       return [];
     }
   }

@@ -33,16 +33,22 @@
         }
       ]
     },
-    "views": {
-      "exercise-generator" :[
-        {
-          "id": "exerciseView",
-          "name": "Exercise Panel",
-          "type": "webview",
-          "icon": "resources/icon2.png"
-        }
-      ]
-    }
+     "views": {
+       "exercise-generator" :[
+         {
+           "id": "exerciseView",
+           "name": "Exercise Panel",
+           "type": "webview",
+           "icon": "resources/icon2.png"
+         },
+         {
+           "id": "databaseView",
+           "name": "Database",
+           "type": "webview",
+           "icon": "resources/icon2.png"
+         }
+       ]
+     }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
