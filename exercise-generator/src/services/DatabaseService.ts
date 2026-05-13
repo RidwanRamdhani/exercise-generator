@@ -5,9 +5,11 @@ export interface SeedExercise {
   id: number;
   title: string;
   difficulty: 'easy' | 'intermediate' | 'hard';
+  topic?: string;           // ← TAMBAHAN: nama topik, e.g. "String", "List", "Nested List"
   type?: 'concept' | 'domain';
   keywords?: string[];
   problem_statement: string;
+  example: string;
   solution: string;
   test_cases: string[];
 }
@@ -69,19 +71,19 @@ export class DatabaseService {
     }
   }
 
-   async getSeedsForShot(
-     difficulty: 'easy' | 'intermediate' | 'hard',
-     shotCount: number
-   ): Promise<SeedExercise[]> {
-     if (shotCount === 0) { return []; }
-     try {
-       const result = await this._run(['get_seeds', difficulty, String(shotCount)]);
-       return result as SeedExercise[];
-     } catch (err) {
-       console.error('[ExGen DB] getSeedsForShot failed:', err);
-       return [];
-     }
-   }
+  async getSeedsForShot(
+    difficulty: 'easy' | 'intermediate' | 'hard',
+    shotCount: number
+  ): Promise<SeedExercise[]> {
+    if (shotCount === 0) { return []; }
+    try {
+      const result = await this._run(['get_seeds', difficulty, String(shotCount)]);
+      return result as SeedExercise[];
+    } catch (err) {
+      console.error('[ExGen DB] getSeedsForShot failed:', err);
+      return [];
+    }
+  }
 
   async getAllExercises(): Promise<SeedExercise[]> {
     try {

@@ -1,9 +1,33 @@
 import * as vscode from 'vscode';
 
+// ── Interface hasil generate dari LLM ────────────────────────────────────────
+// Sesuaikan field ini nanti saat LLM sudah diimplementasikan.
+// Field bertanda (?) berarti opsional — mungkin belum tersedia di semua model.
+export interface GeneratedExercise {
+  id: number;
+
+  // Info soal
+  title: string;
+  topic: string;                              // keyword yang dipakai user
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+
+  // Konten soal
+  problem_statement: string;
+  example: string;                            // format: "Input: ...\nOutput: ..."
+
+  // Kode
+  function_stub: string;                      // hanya header + pass, tanpa solusi
+  test_cases: string[];                       // array of assert statement strings
+
+  // Metadata generate (opsional)
+  shot?: string;                              // "0-shot" | "1-shot" | dst.
+  filters_applied?: string[];                 // filter yang dipakai
+}
+
 export class ExerciseViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'exerciseView';
   private _view?: vscode.WebviewView;
-  private _exercises: any[] = [];
+  private _exercises: GeneratedExercise[] = [];
   private _counter = 0;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
@@ -33,55 +57,99 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
-  public addExercise() {
+  // ── Public API: dipanggil dari exerciseGenerator.ts ──────────────────────
+  // Nanti saat LLM sudah ada, panggil addGeneratedExercise() dengan data nyata.
+  // Untuk sekarang addDummyExercise() dipakai sebagai placeholder.
+
+  public addGeneratedExercise(data: Omit<GeneratedExercise, 'id'>) {
     this._counter++;
-
-    const dummies = [
-      {
-        difficulty: 'Easy',
-        keywords: ['List', 'Length', 'Conditional'],
-        problem:
-          'Write a Python function that checks whether a given list contains exactly three elements. Return True if the list has exactly three elements, otherwise return False.',
-        example: 'Input  : [1, 2, 3]\nOutput : True\n\nInput  : [1, 2]\nOutput : False',
-        code: 'def has_three_elements(input_list):\n    # TODO: Implement this function\n    pass',
-      },
-      {
-        difficulty: 'Easy',
-        keywords: ['String', 'Vowel', 'Loop'],
-        problem:
-          'Write a Python function count_vowels that takes a single string input parameter and returns the number of vowels (a, e, i, o, u) in the string. The function should ignore the case of the letters.',
-        example: 'Input  : "hello"\nOutput : 2\n\nInput  : "AEIOU"\nOutput : 5',
-        code: 'def count_vowels(input_string):\n    # TODO: Implement this function\n    pass',
-      },
-      {
-        difficulty: 'Medium',
-        keywords: ['Dictionary', 'Frequency', 'Loop'],
-        problem:
-          'Write a Python function that takes a list of integers and returns a dictionary where keys are the integers and values are their frequencies in the list.',
-        example: 'Input  : [1, 2, 2, 3, 3, 3]\nOutput : {1: 1, 2: 2, 3: 3}',
-        code: 'def count_frequency(input_list):\n    # TODO: Implement this function\n    pass',
-      },
-    ];
-
-    const dummy = dummies[(this._counter - 1) % dummies.length];
-    this._exercises.push({ id: this._counter, ...dummy });
+    this._exercises.push({ id: this._counter, ...data });
     this._update();
   }
 
+  /** Placeholder dummy — hapus setelah LLM diimplementasikan */
+  public addDummyExercise() {
+    const dummies: Omit<GeneratedExercise, 'id'>[] = [
+      {
+        title: 'Check List Length',
+        topic: 'List',
+        difficulty: 'Easy',
+        problem_statement:
+          'Write a Python function that checks whether a given list contains exactly three elements. Return True if the list has exactly three elements, otherwise return False.',
+        example: 'Input  : [1, 2, 3]\nOutput : True\n\nInput  : [1, 2]\nOutput : False',
+        function_stub: 'def has_three_elements(input_list):\n    # TODO: Implement this function\n    pass',
+        test_cases: [
+          "assert has_three_elements([1, 2, 3]) == True",
+          "assert has_three_elements([1, 2]) == False",
+          "assert has_three_elements([]) == False",
+          "assert has_three_elements([1, 2, 3, 4]) == False",
+        ],
+        shot: '1-shot',
+        filters_applied: ['Testcase Check'],
+      },
+      {
+        title: 'Count Vowels',
+        topic: 'String',
+        difficulty: 'Easy',
+        problem_statement:
+          'Write a Python function count_vowels that takes a single string input parameter and returns the number of vowels (a, e, i, o, u) in the string. The function should ignore the case of the letters.',
+        example: 'Input  : "hello"\nOutput : 2\n\nInput  : "AEIOU"\nOutput : 5',
+        function_stub: 'def count_vowels(input_string):\n    # TODO: Implement this function\n    pass',
+        test_cases: [
+          'assert count_vowels("hello") == 2',
+          'assert count_vowels("AEIOU") == 5',
+          'assert count_vowels("") == 0',
+          'assert count_vowels("xyz") == 0',
+        ],
+        shot: '2-shot',
+        filters_applied: ['Testcase Check', 'Difficulty Check'],
+      },
+      {
+        title: 'Count Frequency',
+        topic: 'Dictionary',
+        difficulty: 'Medium',
+        problem_statement:
+          'Write a Python function that takes a list of integers and returns a dictionary where keys are the integers and values are their frequencies in the list.',
+        example: 'Input  : [1, 2, 2, 3, 3, 3]\nOutput : {1: 1, 2: 2, 3: 3}',
+        function_stub: 'def count_frequency(input_list):\n    # TODO: Implement this function\n    pass',
+        test_cases: [
+          'assert count_frequency([1, 2, 2, 3, 3, 3]) == {1: 1, 2: 2, 3: 3}',
+          'assert count_frequency([]) == {}',
+          'assert count_frequency([5]) == {5: 1}',
+        ],
+        shot: '3-shot',
+        filters_applied: ['Testcase Check', 'Difficulty Check'],
+      },
+    ];
+
+    const dummy = dummies[(this._counter) % dummies.length];
+    this.addGeneratedExercise(dummy);
+  }
+
+  // ── Format ke editor — sama persis dengan DatabaseViewProvider ────────────
   private _sendToEditor(id: number) {
-    const ex = this._exercises.find((e) => e.id === id);
+    const ex = this._exercises.find(e => e.id === id);
     if (!ex) { return; }
 
+    const testCases = ex.test_cases.join('\n');
+
     const content =
-      `"""\nDifficulty : ${ex.difficulty}\n` +
-      `Keywords   : ${ex.keywords.join(', ')}\n\n` +
-      `Problem:\n${ex.problem}\n\n` +
-      `Example:\n${ex.example}\n"""\n\n` +
-      ex.code;
+      `"""\n` +
+      `Title        : ${ex.title}\n` +
+      `Topic        : ${ex.topic}\n` +
+      `Difficulty   : ${ex.difficulty}\n` +
+      (ex.shot            ? `Shot         : ${ex.shot}\n`                        : '') +
+      (ex.filters_applied ? `Filters      : ${ex.filters_applied.join(', ')}\n`  : '') +
+      `\n` +
+      `Problem:\n${ex.problem_statement}\n\n` +
+      `Example:\n${ex.example}\n` +
+      `"""\n\n` +
+      `${ex.function_stub}\n\n\n` +
+      `# Test Cases\n${testCases}`;
 
     vscode.workspace
       .openTextDocument({ content, language: 'python' })
-      .then((doc) => vscode.window.showTextDocument(doc, vscode.ViewColumn.One));
+      .then(doc => vscode.window.showTextDocument(doc, vscode.ViewColumn.One));
   }
 
   private _update() {
@@ -146,33 +214,30 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
   .card-head {
     display: flex;
     align-items: center;
-    padding: 4px 6px;
+    padding: 5px 6px;
     cursor: pointer;
     user-select: none;
-    gap: 4px;
+    gap: 5px;
   }
-  .card-head:hover {
-    background: var(--vscode-list-hoverBackground);
-  }
+  .card-head:hover { background: var(--vscode-list-hoverBackground); }
 
   .chevron {
-    font-size: 14px;
+    font-size: 13px;
     display: flex;
     align-items: center;
     opacity: 0.8;
     transition: transform .15s;
-    /* pastikan tidak bisa jadi target click sendiri */
     pointer-events: none;
   }
-  .card-head.collapsed .chevron {
-    transform: rotate(-90deg);
-  }
+  .card-head.collapsed .chevron { transform: rotate(-90deg); }
 
   .card-title {
     flex: 1;
     font-size: 12px;
     pointer-events: none;
+    line-height: 1.4;
   }
+
 
   .btn-arrow {
     display: flex;
@@ -185,18 +250,16 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     cursor: pointer;
     border-radius: 3px;
     color: var(--vscode-foreground);
-    opacity: 0.7;
+    opacity: 0.65;
     font-size: 14px;
     padding: 0;
+    flex-shrink: 0;
   }
   .btn-arrow:hover {
     opacity: 1;
     background: var(--vscode-toolbar-hoverBackground);
   }
-
-  .btn-arrow * {
-    pointer-events: none;
-  }
+  .btn-arrow * { pointer-events: none; }
 
   .card-body {
     padding: 6px 10px 10px 22px;
@@ -207,6 +270,7 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     overflow-y: auto;
   }
   .card-body.hidden { display: none; }
+  .card-body b { opacity: 0.85; }
 
   /* ── HORIZONTAL MODE ── */
   body.horizontal #list {
@@ -257,27 +321,37 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
   vscode.postMessage({ type: 'ready' });
 
   window.addEventListener('message', ({ data }) => {
-    if (data.type === 'update') render(data.exercises);
+    if (data.type === 'update') { render(data.exercises); }
   });
 
   $list.addEventListener('click', (e) => {
-  const btnArrow = e.target.closest('.btn-arrow');
-  if (btnArrow) {
-    e.stopPropagation();
-    vscode.postMessage({ type: 'sendToEditor', id: parseInt(btnArrow.dataset.send) });
-    return;
-  }
-
-  const head = e.target.closest('.card-head');
-  if (head && !head.classList.contains('collapsed') || head) {
-    const id   = head?.dataset.id;
-    const body = id ? document.getElementById('body-' + id) : null;
-    if (head && body) {
-      head.classList.toggle('collapsed');
-      body.classList.toggle('hidden');
+    const btnArrow = e.target.closest('.btn-arrow');
+    if (btnArrow) {
+      e.stopPropagation();
+      vscode.postMessage({ type: 'sendToEditor', id: parseInt(btnArrow.dataset.send) });
+      return;
     }
+
+    const head = e.target.closest('.card-head');
+    if (head) {
+      const id   = head.dataset.id;
+      const body = id ? document.getElementById('body-' + id) : null;
+      if (body) {
+        head.classList.toggle('collapsed');
+        body.classList.toggle('hidden');
+      }
+    }
+  });
+
+  function escapeHtml(str) {
+    if (!str) { return ''; }
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
-});
 
   function render(exercises) {
     if (!exercises.length) {
@@ -289,12 +363,15 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     $empty.style.display = 'none';
     $list.style.display  = 'flex';
 
+    // Simpan state collapse sebelum re-render
     const collapsed = new Set(
       [...$list.querySelectorAll('.card-head.collapsed')].map(h => h.dataset.id)
     );
 
     $list.innerHTML = exercises.map(ex => {
       const isCollapsed = collapsed.has(String(ex.id));
+      const testCasesText = (ex.test_cases || []).join('\\n');
+
       return \`
 <div class="card">
   <div class="card-head\${isCollapsed ? ' collapsed' : ''}" data-id="\${ex.id}">
@@ -302,18 +379,20 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     <span class="card-title">EXERCISE \${ex.id}</span>
     <button class="btn-arrow codicon codicon-arrow-up" data-send="\${ex.id}" title="Send to Editor"></button>
   </div>
-  <div class="card-body\${isCollapsed ? ' hidden' : ''}" id="body-\${ex.id}">"""
-Difficulty : \${ex.difficulty}
-Keywords   : \${ex.keywords.join(', ')}
+  <div class="card-body\${isCollapsed ? ' hidden' : ''}" id="body-\${ex.id}"><b>Topic:</b> \${escapeHtml(ex.topic)}
 
-Problem:
-\${ex.problem}
+<b>Problem:</b>
+\${escapeHtml(ex.problem_statement)}
 
-Example:
-\${ex.example}
-"""
+<b>Example:</b>
+\${escapeHtml(ex.example)}
 
-\${ex.code}</div>
+<b>Code:</b>
+\${escapeHtml(ex.function_stub)}
+
+<b>Test Cases:</b>
+\${escapeHtml(testCasesText)}
+  </div>
 </div>\`;
     }).join('');
 

@@ -4,7 +4,9 @@ import { DatabaseService, SeedExercise } from '../services/DatabaseService';
 export class DatabaseViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'databaseView';
   private _view?: vscode.WebviewView;
-  private _exercisesByDifficulty: Record<string, SeedExercise[]> = { easy: [], intermediate: [], hard: [] };
+
+  // Kunci sekarang adalah nama topik, bukan difficulty
+  private _exercisesByTopic: Record<string, SeedExercise[]> = {};
   private _db: DatabaseService;
 
   constructor(private readonly _extensionUri: vscode.Uri, db: DatabaseService) {
@@ -20,7 +22,6 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [this._extensionUri]
     };
 
-    // Set up event handlers BEFORE setting HTML to avoid missing messages
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
         this._update();
@@ -37,60 +38,79 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
       }
     });
 
-    // Load exercises from database first
     await this._loadExercises();
 
-    // Then set HTML (which will trigger webview to load and send 'ready')
     webviewView.webview.html = this._getHtml(webviewView.webview);
   }
-
 
   private async _loadExercises() {
     try {
       console.log('[DatabaseView] Loading exercises...');
       const all = await this._db.getAllExercises();
       console.log('[DatabaseView] Received', all.length, 'exercises from DB');
+
       if (all.length === 0) {
-        vscode.window.showWarningMessage('Database is empty. Ensure Python backend has tinydb installed and db.json is populated.');
+        vscode.window.showWarningMessage(
+          'Database is empty. Ensure Python backend has tinydb installed and db.json is populated.'
+        );
       }
-      const grouped: Record<string, SeedExercise[]> = { easy: [], intermediate: [], hard: [] };
+
+      // Kelompokkan berdasarkan topic; jika tidak ada topic, masukkan ke "General"
+      const grouped: Record<string, SeedExercise[]> = {};
       for (const ex of all) {
-        const diff = ex.difficulty || 'easy';
-        if (grouped[diff]) {
-          grouped[diff].push(ex);
-        } else {
-          grouped[diff] = [ex];
+        const topic = ex.topic?.trim() || 'General';
+        if (!grouped[topic]) {
+          grouped[topic] = [];
         }
+        grouped[topic].push(ex);
       }
-      console.log('[DatabaseView] Grouped:', JSON.stringify(Object.keys(grouped).map(k => ({key: k, count: grouped[k].length}))));
-      this._exercisesByDifficulty = grouped;
+
+      // Urutkan exercise dalam setiap topik: easy → intermediate → hard
+      const diffOrder: Record<string, number> = { easy: 0, intermediate: 1, hard: 2 };
+      for (const topic of Object.keys(grouped)) {
+        grouped[topic].sort(
+          (a, b) => (diffOrder[a.difficulty] ?? 0) - (diffOrder[b.difficulty] ?? 0)
+        );
+      }
+
+      this._exercisesByTopic = grouped;
     } catch (err: any) {
       console.error('[DatabaseView] Error loading exercises:', err);
       vscode.window.showErrorMessage(`Failed to load database: ${err.message}`);
-      this._exercisesByDifficulty = { easy: [], intermediate: [], hard: [] };
+      this._exercisesByTopic = {};
     }
   }
 
   private _sendToEditor(id: number) {
-    // Find exercise across all difficulties
     let ex: SeedExercise | undefined;
-    for (const list of Object.values(this._exercisesByDifficulty)) {
+    for (const list of Object.values(this._exercisesByTopic)) {
       ex = list.find(e => e.id === id);
-      if (ex) {
-        break;
-      }
+      if (ex) { break; }
     }
     if (!ex) { return; }
 
+    const firstLine = ex.solution.split('\n')[0];
+    const funcStub = `${firstLine}\n    # TODO: Implement this function\n    pass`;
+
+    // Assert langsung (tanpa komentar), diletakkan di bawah function stub
+    const testCases = (ex.test_cases || []).join('\n');
+
+    const difficultyLabel =
+      ex.difficulty === 'easy' ? 'Easy' :
+      ex.difficulty === 'intermediate' ? 'Medium' : 'Hard';
+
     const content =
-      `"""\nTitle        : ${ex.title}\n` +
-      `Difficulty   : ${ex.difficulty}\n` +
+      `"""\n` +
+      `Title        : ${ex.title}\n` +
+      `Topic        : ${ex.topic || 'General'}\n` +
+      `Difficulty   : ${difficultyLabel}\n` +
       `Type         : ${ex.type || 'N/A'}\n` +
       `Keywords     : ${(ex.keywords || []).join(', ')}\n\n` +
       `Problem:\n${ex.problem_statement}\n\n` +
-      `Solution:\n${ex.solution}\n\n` +
-      `Test Cases:\n${(ex.test_cases || []).join('\n')}\n"""\n\n` +
-      ex.solution;
+      `Example:\n${ex.example || ''}\n` +
+      `"""\n\n` +
+      `${funcStub}\n\n\n` +
+      `# Test Cases\n${testCases}`;
 
     vscode.workspace
       .openTextDocument({ content, language: 'python' })
@@ -98,11 +118,9 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
   }
 
   private _update() {
-    console.log('[DatabaseView] Sending update with difficulties:', JSON.stringify(Object.keys(this._exercisesByDifficulty).map(k => ({key: k, count: this._exercisesByDifficulty[k].length}))));
-    console.log('[DatabaseView] Full _exercisesByDifficulty:', this._exercisesByDifficulty);
     this._view?.webview.postMessage({
       type: 'update',
-      difficulties: this._exercisesByDifficulty
+      topics: this._exercisesByTopic
     });
   }
 
@@ -131,14 +149,15 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
     flex-direction: column;
   }
 
+  /* ── Toolbar ── */
   #toolbar {
     padding: 6px 8px;
     border-bottom: 1px solid var(--vscode-panel-border);
     display: flex;
+    align-items: center;
     gap: 6px;
     flex-shrink: 0;
   }
-
   .toolbar-btn {
     display: flex;
     align-items: center;
@@ -154,7 +173,13 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
   .toolbar-btn:hover {
     background: var(--vscode-button-secondaryHoverBackground);
   }
+  #toolbar-label {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-left: auto;
+  }
 
+  /* ── Scrollable content ── */
   #content {
     flex: 1;
     overflow-y: auto;
@@ -162,12 +187,11 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
     padding: 4px 0;
   }
 
+  /* ── Topic section ── */
   .section {
     border-bottom: 1px solid var(--vscode-panel-border);
   }
-  .section:last-child {
-    border-bottom: none;
-  }
+  .section:last-child { border-bottom: none; }
 
   .section-header {
     display: flex;
@@ -175,81 +199,96 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
     padding: 6px 8px;
     cursor: pointer;
     user-select: none;
-    gap: 4px;
-    font-weight: 600;
-    font-size: 13px;
-    background: var(--vscode-list-hoverBackground);
+    gap: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--vscode-sideBarSectionHeader-background,
+                    var(--vscode-list-hoverBackground));
     position: sticky;
     top: 0;
     z-index: 1;
   }
   .section-header:hover {
     background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+  }
+
+  /* Topic icon pill */
+  .topic-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    background: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
   }
 
   .section-count {
     font-size: 11px;
     opacity: 0.7;
     margin-left: auto;
-    padding: 0 6px;
+    padding: 1px 7px;
     background: var(--vscode-badge-background);
     color: var(--vscode-badge-foreground);
     border-radius: 10px;
   }
 
   .chevron {
-    font-size: 14px;
+    font-size: 13px;
     transition: transform .15s;
+    opacity: 0.8;
   }
-  .collapsed .chevron {
-    transform: rotate(-90deg);
-  }
+  .collapsed .chevron { transform: rotate(-90deg); }
 
-  .exercise-list {
-    display: flex;
-    flex-direction: column;
-  }
-  .exercise-list.hidden {
-    display: none;
-  }
+  /* ── Exercise list ── */
+  .exercise-list { display: flex; flex-direction: column; }
+  .exercise-list.hidden { display: none; }
 
   .exercise-card {
     border-bottom: 1px solid var(--vscode-panel-border);
     flex-shrink: 0;
   }
-  .exercise-card:last-child {
-    border-bottom: none;
-  }
+  .exercise-card:last-child { border-bottom: none; }
 
+  /* Card header row */
   .card-head {
     display: flex;
     align-items: center;
-    padding: 4px 6px 4px 18px;
+    padding: 5px 6px 5px 20px;
     cursor: pointer;
     user-select: none;
-    gap: 4px;
+    gap: 5px;
   }
-  .card-head:hover {
-    background: var(--vscode-list-hoverBackground);
-  }
+  .card-head:hover { background: var(--vscode-list-hoverBackground); }
 
   .card-title {
     flex: 1;
     font-size: 12px;
     pointer-events: none;
+    line-height: 1.4;
   }
 
+  /* Difficulty badge – compact, right-aligned */
   .badge {
     font-size: 10px;
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 3px;
-    margin-right: 4px;
     font-weight: 600;
+    flex-shrink: 0;
+    opacity: 0.9;
   }
-  .badge-easy { background: #4caf50; color: white; }
-  .badge-medium { background: #ff9800; color: white; }
-  .badge-hard { background: #f44336; color: white; }
+  .badge-easy   { background: #388e3c; color: #fff; }
+  .badge-medium { background: #f57c00; color: #fff; }
+  .badge-hard   { background: #c62828; color: #fff; }
 
+  /* Send-to-editor arrow button */
   .btn-arrow {
     display: flex;
     align-items: center;
@@ -261,57 +300,60 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
     cursor: pointer;
     border-radius: 3px;
     color: var(--vscode-foreground);
-    opacity: 0.7;
+    opacity: 0.65;
     font-size: 14px;
     padding: 0;
+    flex-shrink: 0;
   }
   .btn-arrow:hover {
     opacity: 1;
     background: var(--vscode-toolbar-hoverBackground);
   }
-
   .btn-arrow * { pointer-events: none; }
 
+  /* Expanded card body */
   .card-body {
     padding: 6px 10px 10px 34px;
     font-size: 12px;
     line-height: 1.6;
     white-space: pre-wrap;
     word-wrap: break-word;
-    overflow-y: auto;
   }
   .card-body.hidden { display: none; }
+  .card-body b { opacity: 0.85; }
 </style>
 </head>
 <body>
 
 <div id="toolbar">
   <button class="toolbar-btn codicon codicon-sync" title="Refresh" id="btnRefresh"></button>
-  <span style="flex:1"></span>
-  <span style="font-size:11px; opacity:0.7; align-self:center;">Database Exercises</span>
+  <span id="toolbar-label">Database Exercises</span>
 </div>
 
-<div id="content"></div>
+<div id="content">
+  <div style="padding:16px;opacity:0.5;font-size:12px;">Loading…</div>
+</div>
 
 <script>
   const vscode = acquireVsCodeApi();
-  const $body = document.body;
   const $content = document.getElementById('content');
 
+  /* ── Toolbar ── */
   document.getElementById('btnRefresh').addEventListener('click', () => {
     vscode.postMessage({ type: 'refresh' });
   });
 
+  /* ── Message handler ── */
   window.addEventListener('message', ({ data }) => {
-    if (data.type === 'update') {
-      console.log('[DatabaseView Webview] Received update message:', data);
-      render(data.difficulties);
-    }
+    if (data.type === 'update') { render(data.topics); }
   });
 
+  /* Signal ready */
   vscode.postMessage({ type: 'ready' });
 
+  /* ── Delegated click handler ── */
   $content.addEventListener('click', (e) => {
+    /* Send-to-editor button */
     const btnArrow = e.target.closest('.btn-arrow');
     if (btnArrow) {
       e.stopPropagation();
@@ -319,17 +361,19 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
       return;
     }
 
+    /* Toggle exercise card body */
     const head = e.target.closest('.card-head');
     if (head) {
       const id = head.dataset.id;
       const body = id ? document.getElementById('body-' + id) : null;
-      if (head && body) {
-        head.classList.toggle('collapsed');
+      if (body) {
+        head.classList.toggle('open');
         body.classList.toggle('hidden');
       }
       return;
     }
 
+    /* Toggle topic section */
     const sectionHeader = e.target.closest('.section-header');
     if (sectionHeader) {
       const list = sectionHeader.nextElementSibling;
@@ -340,8 +384,9 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
     }
   });
 
+  /* ── Helpers ── */
   function escapeHtml(str) {
-    if (!str) return '';
+    if (!str) { return ''; }
     return String(str)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -350,58 +395,80 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
       .replace(/'/g, '&#39;');
   }
 
-  function render(difficulties) {
+  // Ambil huruf pertama topik sebagai ikon
+  function topicInitial(topic) {
+    return escapeHtml((topic || '?').charAt(0).toUpperCase());
+  }
+
+  function diffBadge(difficulty) {
+    if (difficulty === 'easy')         { return '<span class="badge badge-easy">Easy</span>'; }
+    if (difficulty === 'intermediate') { return '<span class="badge badge-medium">Med</span>'; }
+    if (difficulty === 'hard')         { return '<span class="badge badge-hard">Hard</span>'; }
+    return '';
+  }
+
+  /* ── Render ── */
+  function render(topics) {
     try {
-      console.log('[DatabaseView Webview] render() called with:', difficulties);
-      const order = ['easy', 'intermediate', 'hard'];
-      const labels = { easy: 'Easy', intermediate: 'Medium', hard: 'Hard' };
+      if (!topics || Object.keys(topics).length === 0) {
+        $content.innerHTML =
+          '<div style="padding:16px;opacity:0.5;font-size:12px;">No exercises found.</div>';
+        return;
+      }
+
+      // Urutkan topik secara alfabetis; "General" selalu di akhir
+      const sortedTopics = Object.keys(topics).sort((a, b) => {
+        if (a === 'General') { return 1; }
+        if (b === 'General') { return -1; }
+        return a.localeCompare(b);
+      });
+
       let html = '';
 
-      for (const key of order) {
-        const list = difficulties[key] || [];
-        console.log('[DatabaseView Webview] difficulty:', key, 'count:', list.length);
-        if (!list || list.length === 0) {
-          console.log('[DatabaseView Webview] skipping empty difficulty:', key);
-          continue;
-        }
+      for (const topic of sortedTopics) {
+        const list = topics[topic] || [];
+        if (list.length === 0) { continue; }
 
-        const sectionId = 'section-' + key;
-        const listId = 'list-' + key;
+        const sectionId = 'section-' + topic.replace(/\\s+/g, '-');
+        const listId    = 'list-'    + topic.replace(/\\s+/g, '-');
 
         html += \`
           <div class="section">
             <div class="section-header" id="\${sectionId}">
-              <span class="chevron codicon codicon-chevron-down"></span>
-              <span>\${labels[key]} Exercises</span>
+              <span class="topic-icon">\${topicInitial(topic)}</span>
+              <span class="codicon codicon-chevron-down chevron"></span>
+              <span>\${escapeHtml(topic)}</span>
               <span class="section-count">\${list.length}</span>
             </div>
             <div class="exercise-list" id="\${listId}">
-          \`;
+        \`;
 
         for (const ex of list) {
-          const badgeClass = key === 'easy' ? 'badge-easy' : key === 'hard' ? 'badge-hard' : 'badge-medium';
-          const escapedTitle = escapeHtml(ex.title);
-          const escapedProblem = escapeHtml(ex.problem_statement);
-          const escapedSolution = escapeHtml(ex.solution);
-          const escapedTestCases = (ex.test_cases || []).map(escapeHtml).join('\\n');
+          const testCasesPreview = (ex.test_cases || [])
+            .map(tc => escapeHtml(tc))
+            .join('\\n');
+          const solutionPreview = escapeHtml(ex.solution || '');
+
           html += \`
             <div class="exercise-card">
               <div class="card-head" data-id="\${ex.id}">
-                <span class="card-title">
-                  <span class="badge \${badgeClass}">\${labels[key]}</span>
-                  \${escapedTitle}
-                </span>
-                <button class="btn-arrow codicon codicon-arrow-up" data-send="\${ex.id}" title="Send to Editor"></button>
+                <span class="card-title">\${escapeHtml(ex.title)}</span>
+                \${diffBadge(ex.difficulty)}
+                <button class="btn-arrow codicon codicon-arrow-up"
+                        data-send="\${ex.id}"
+                        title="Send to Editor"></button>
               </div>
-              <div class="card-body hidden" id="body-\${ex.id}">
-<strong>Problem:</strong>
-\${escapedProblem}
+              <div class="card-body hidden" id="body-\${ex.id}"><b>Problem:</b>
+\${escapeHtml(ex.problem_statement)}
 
-<strong>Solution:</strong>
-\${escapedSolution}
+<b>Example:</b>
+\${escapeHtml(ex.example || 'N/A')}
 
-<strong>Test Cases:</strong>
-\${escapedTestCases}
+<b>Test Cases:</b>
+\${testCasesPreview}
+
+<b>Solution:</b>
+\${solutionPreview}
               </div>
             </div>
           \`;
@@ -413,7 +480,6 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
         \`;
       }
 
-      console.log('[DatabaseView Webview] Final HTML length:', html.length);
       $content.innerHTML = html;
     } catch (err) {
       console.error('[DatabaseView Webview] render error:', err);

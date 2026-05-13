@@ -8,7 +8,7 @@ import {
 	showCancelledMessage,
 	showExerciseSummary
 } from '../dialogs';
-import { ExerciseViewProvider } from '../views/ExerciseViewProvider';
+import { ExerciseViewProvider, GeneratedExercise } from '../views/ExerciseViewProvider';
 import { DatabaseService } from '../services/DatabaseService';
 
 export async function exerciseGeneratorCommand(
@@ -68,5 +68,27 @@ export async function exerciseGeneratorCommand(
   console.log('[ExGen] Config:', config);
   console.log('[ExGen] Few-shot examples:', fewShotExamples.map(e => e.title));
 
-  viewProvider.addExercise();
+  // ── TODO: Ganti blok di bawah ini dengan pemanggilan LLM ─────────────────
+  //
+  // Setelah LLM diimplementasikan, bangun objek GeneratedExercise dari
+  // respons LLM lalu panggil:
+  //
+  //   const result = await callLLM(config, fewShotExamples);
+  //
+  //   const exercise: Omit<GeneratedExercise, 'id'> = {
+  //     title:             result.title,
+  //     topic:             config.topic,
+  //     difficulty:        config.difficulty,
+  //     problem_statement: result.problem_statement,
+  //     example:           result.example,
+  //     function_stub:     result.function_stub,
+  //     test_cases:        result.test_cases,        // array of assert strings
+  //     shot:              config.shot,
+  //     filters_applied:   config.filters,
+  //   };
+  //
+  //   viewProvider.addGeneratedExercise(exercise);
+  //
+  // ── Sementara pakai dummy ─────────────────────────────────────────────────
+  viewProvider.addDummyExercise();
 }
