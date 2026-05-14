@@ -46,7 +46,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const moreExerciseCmd = vscode.commands.registerCommand(
     'exercise-generator.moreExercise',
-    () => exerciseGeneratorCommand(viewProvider, db)
+    () => exerciseGeneratorCommand(viewProvider, db, context.extensionPath)
   );
 
    const showDatabaseCmd = vscode.commands.registerCommand(
