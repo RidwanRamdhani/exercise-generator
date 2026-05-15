@@ -73,21 +73,23 @@ export async function exerciseGeneratorCommand(
   console.log('[ExGen] Few-shot examples:', fewShotExamples.map(e => e.title));
 
   try {
-    const result = await callLLM(config, fewShotExamples, extensionPath);
+    const results = await callLLM(config, fewShotExamples, extensionPath);
 
-    const exercise: Omit<GeneratedExercise, 'id'> = {
-      title: result.title,
-      topic: config.topic,
-      difficulty: config.difficulty,
-      problem_statement: result.problem_statement,
-      example: result.example,
-      function_stub: result.function_stub,
-      test_cases: result.test_cases,
-      shot: config.shot,
-      filters_applied: config.filters
-    };
+    for (const result of results) {
+      const exercise: Omit<GeneratedExercise, 'id'> = {
+        title: result.title,
+        topic: config.topic,
+        difficulty: config.difficulty,
+        problem_statement: result.problem_statement,
+        example: result.example,
+        function_stub: result.function_stub,
+        test_cases: result.test_cases,
+        shot: config.shot,
+        filters_applied: config.filters
+      };
 
-    viewProvider.addGeneratedExercise(exercise);
+      viewProvider.addGeneratedExercise(exercise);
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     vscode.window.showErrorMessage(`Failed to generate exercise: ${message}`);
@@ -213,7 +215,7 @@ async function callLLM(
   config: ExerciseConfig,
   fewShotExamples: any[],
   extensionPath: string
-): Promise<LLMExercise> {
+): Promise<LLMExercise[]> {
   loadEnvFromFile(extensionPath);
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -266,11 +268,12 @@ async function callLLM(
     throw new Error('OpenRouter response missing content');
   }
 
-  // The LLM may return multiple exercises; use the first entry.
   const parsed = parseJsonFromContent(content);
-  const exercise = Array.isArray(parsed) ? parsed[0] : parsed;
-  validateLLMExercise(exercise);
-  return exercise;
+  const exercises = Array.isArray(parsed) ? parsed : [parsed];
+  for (const exercise of exercises) {
+    validateLLMExercise(exercise);
+  }
+  return exercises;
 }
 
 function loadEnvFromFile(extensionPath: string): void {
