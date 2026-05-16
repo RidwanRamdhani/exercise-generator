@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as https from 'https';
+import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ExerciseConfig, Difficulty, Shot } from '../types/exercise';
@@ -217,12 +218,15 @@ async function callLLM(
   extensionPath: string
 ): Promise<LLMExercise[]> {
   loadEnvFromFile(extensionPath);
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    throw new Error('Missing OPENROUTER_API_KEY in environment');
+  
+  const useOllama = process.env.USE_OLLAMA === 'true';
+  const apiKey = useOllama ? 'ollama' : process.env.OPENROUTER_API_KEY;
+  
+  if (!useOllama && !apiKey) {
+    throw new Error('Missing OPENROUTER_API_KEY in environment. Set USE_OLLAMA=true for local Ollama.');
   }
 
-  const model = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3-super-120b-a12b:free';
+  const model = process.env.OPENROUTER_MODEL || (useOllama ? 'llama3.2' : 'nvidia/nemotron-3-super-120b-a12b:free');
 
   const diffMap: Record<Difficulty, string> = {
     'Easy': 'easy',
@@ -236,6 +240,7 @@ async function callLLM(
 
   console.log('[ExGen] Prompting strategy:', fewShotExamples.length === 0 ? 'zero-shot' : `${fewShotExamples.length}-shot`);
   console.log('[ExGen] Total messages in prompt:', messages.length);
+  console.log('[ExGen] Using:', useOllama ? 'Ollama (localhost)' : 'OpenRouter');
 
   const payload = JSON.stringify({
     model,
@@ -244,28 +249,33 @@ async function callLLM(
     messages
   });
 
+  const baseUrl = useOllama ? 'http://localhost:11434/v1/chat/completions' : 'https://openrouter.ai/api/v1/chat/completions';
+  
   const responseText = await httpRequest(
-    'https://openrouter.ai/api/v1/chat/completions',
+    baseUrl,
     payload,
     {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: useOllama ? '' : `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(payload).toString(),
       'HTTP-Referer': 'vscode-extension',
       'X-Title': 'exercise-generator'
-    }
+    },
+    useOllama
   );
 
   let responseJson: OpenRouterResponse;
   try {
     responseJson = JSON.parse(responseText) as OpenRouterResponse;
   } catch {
-    throw new Error('OpenRouter response is not valid JSON');
+    throw new Error('LLM response is not valid JSON');
   }
 
-  const content = responseJson.choices?.[0]?.message?.content;
+  const content = useOllama 
+    ? responseJson.choices?.[0]?.message?.content 
+    : responseJson.choices?.[0]?.message?.content;
   if (!content) {
-    throw new Error('OpenRouter response missing content');
+    throw new Error('LLM response missing content');
   }
 
   const parsed = parseJsonFromContent(content);
@@ -277,7 +287,7 @@ async function callLLM(
 }
 
 function loadEnvFromFile(extensionPath: string): void {
-  if (process.env.OPENROUTER_API_KEY) {
+  if (process.env.OPENROUTER_API_KEY || process.env.USE_OLLAMA === 'true') {
     return;
   }
 
@@ -315,9 +325,10 @@ function loadEnvFromFile(extensionPath: string): void {
   }
 }
 
-function httpRequest(url: string, body: string, headers: Record<string, string>): Promise<string> {
+function httpRequest(url: string, body: string, headers: Record<string, string>, useHttp: boolean = false): Promise<string> {
   return new Promise((resolve, reject) => {
-    const request = https.request(
+    const requestFn = useHttp ? http.request : https.request;
+    const request = requestFn(
       url,
       { method: 'POST', headers },
       (res) => {
