@@ -72,20 +72,29 @@ export async function exerciseGeneratorCommand(
   console.log('[ExGen] Config:', config);
   console.log('[ExGen] Few-shot examples:', fewShotExamples.map(e => e.title));
 
+  const loadingItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    98
+  );
+  loadingItem.text = '$(sync~spin) Generating exercise...';
+  loadingItem.tooltip = 'LLM sedang membuat exercise, mohon tunggu';
+  loadingItem.show();
+
   try {
     const results = await callLLM(config, fewShotExamples, extensionPath);
 
     for (const result of results) {
       const exercise: Omit<GeneratedExercise, 'id'> = {
-        title: result.title,
-        topic: config.topic,
-        difficulty: config.difficulty,
+        title:             result.title,
+        topic:             config.topic,
+        difficulty:        config.difficulty,
         problem_statement: result.problem_statement,
-        example: result.example,
-        function_stub: result.function_stub,
-        test_cases: result.test_cases,
-        shot: config.shot,
-        filters_applied: config.filters
+        example:           result.example,
+        function_stub:     result.function_stub,
+        test_cases:        result.test_cases,
+        solution:          result.solution,
+        shot:              config.shot,
+        filters_applied:   config.filters
       };
 
       viewProvider.addGeneratedExercise(exercise);
@@ -93,6 +102,8 @@ export async function exerciseGeneratorCommand(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     vscode.window.showErrorMessage(`Failed to generate exercise: ${message}`);
+  } finally {
+    loadingItem.dispose();
   }
 }
 
@@ -102,6 +113,7 @@ type LLMExercise = {
   example: string;
   function_stub: string;
   test_cases: string[];
+  solution: string;
 };
 
 type ChatMessage = {
@@ -133,8 +145,7 @@ function buildMessages(
   fewShotExamples: any[],
   difficultyLabel: string
 ): ChatMessage[] {
-  // Message 1: system message.
-  // Defines the role and difficulty tiers to establish shared context.
+  // Message 1: system message
   const systemMessage: ChatMessage = {
     role: 'system',
     content:
@@ -158,46 +169,37 @@ function buildMessages(
 
   const messages: ChatMessage[] = [systemMessage];
 
-  // Few-shot turns: alternating user/assistant messages.
-  //   user:      "Give me a {difficulty} Python exercise."
-  //   assistant: "Here is one {difficulty} Python exercise: {exercise JSON}"
-  // Each example is one user+assistant pair to reinforce format and difficulty.
+  // Few-shot turns
   for (const ex of fewShotExamples) {
-    // User turn: standard request for a single exercise.
     messages.push({
       role: 'user',
       content: `Give me a ${difficultyLabel} Python exercise.`
     });
 
-    // Assistant turn: includes the full example to demonstrate the exact JSON schema and difficulty calibration.
     const exampleJson = JSON.stringify({
-      title: ex.title,
+      title:             ex.title,
       problem_statement: ex.problem_statement,
-      example: ex.example ?? '',
-      function_stub: ex.function_stub ?? `def solution():\n    pass`,
-      test_cases: ex.test_cases ?? [],
-      solution: ex.solution ?? ''
+      example:           ex.example ?? '',
+      function_stub:     ex.function_stub ?? `def solution():\n    pass`,
+      test_cases:        ex.test_cases ?? [],
+      solution:          ex.solution ?? ''
     }, null, 2);
 
     messages.push({
       role: 'assistant',
-      content:
-        `Here is one ${difficultyLabel} Python exercise:\n${exampleJson}`
+      content: `Here is one ${difficultyLabel} Python exercise:\n${exampleJson}`
     });
   }
 
-  // Final message: user request with the keyword.
-  // Requests N new exercises and reiterates the JSON format.
+  // Final user message
   const isZeroShot = fewShotExamples.length === 0;
 
   const finalUserContent = isZeroShot
-    // Zero-shot: no prior turns, so the request includes additional context.
     ? `Give me 3 ${difficultyLabel} Python exercises using this keyword: ` +
       `${config.topic}. ` +
       `Return a JSON array where each element has fields: title, ` +
       `problem_statement, example, function_stub, test_cases, solution. ` +
       `Return JSON only.`
-    // Few-shot: examples already provided, so the request is concise.
     : `Good. I want 3 more ${difficultyLabel} Python exercises using this ` +
       `keyword: ${config.topic}. ` +
       `Print the result with the same format as the previous ones. ` +
@@ -231,7 +233,6 @@ async function callLLM(
   };
   const difficultyLabel = diffMap[config.difficulty];
 
-  // Build prompt messages
   const messages = buildMessages(config, fewShotExamples, difficultyLabel);
 
   console.log('[ExGen] Prompting strategy:', fewShotExamples.length === 0 ? 'zero-shot' : `${fewShotExamples.length}-shot`);
@@ -342,21 +343,17 @@ function httpRequest(url: string, body: string, headers: Record<string, string>)
 function parseJsonFromContent(content: string): LLMExercise | LLMExercise[] {
   const trimmed = content.trim();
 
-  // Strip markdown code fences if present (```json ... ```).
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
   const jsonStr = fenced ? fenced[1].trim() : trimmed;
 
-  // Try JSON array first (LLM returned multiple exercises).
   if (jsonStr.startsWith('[')) {
     return JSON.parse(jsonStr) as LLMExercise[];
   }
 
-  // Single JSON object.
   if (jsonStr.startsWith('{')) {
     return JSON.parse(jsonStr) as LLMExercise;
   }
 
-  // Fallback: extract the first JSON object or array from prose.
   const match = jsonStr.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
   if (!match) {
     throw new Error('LLM content does not contain JSON');

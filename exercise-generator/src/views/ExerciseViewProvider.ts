@@ -1,27 +1,29 @@
 import * as vscode from 'vscode';
+import { DatabaseService } from '../services/DatabaseService';
 
 // ── Interface hasil generate dari LLM ────────────────────────────────────────
-// Sesuaikan field ini nanti saat LLM sudah diimplementasikan.
-// Field bertanda (?) berarti opsional — mungkin belum tersedia di semua model.
 export interface GeneratedExercise {
   id: number;
 
   // Info soal
   title: string;
-  topic: string;                              // keyword yang dipakai user
+  topic: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
 
   // Konten soal
   problem_statement: string;
-  example: string;                            // format: "Input: ...\nOutput: ..."
+  example: string;
 
   // Kode
-  function_stub: string;                      // hanya header + pass, tanpa solusi
-  test_cases: string[];                       // array of assert statement strings
+  function_stub: string;
+  test_cases: string[];
 
-  // Metadata generate (opsional)
-  shot?: string;                              // "0-shot" | "1-shot" | dst.
-  filters_applied?: string[];                 // filter yang dipakai
+  // Solution: disimpan di memori & DB, TIDAK pernah dirender di webview
+  solution?: string;
+
+  // Metadata generate
+  shot?: string;
+  filters_applied?: string[];
 }
 
 export class ExerciseViewProvider implements vscode.WebviewViewProvider {
@@ -29,8 +31,14 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
   private _exercises: GeneratedExercise[] = [];
   private _counter = 0;
+  private _db: DatabaseService;
 
-  constructor(private readonly _extensionUri: vscode.Uri) {}
+  constructor(
+    private readonly _extensionUri: vscode.Uri,
+    db: DatabaseService
+  ) {
+    this._db = db;
+  }
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
     this._view = webviewView;
@@ -48,19 +56,18 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
       }
     });
 
-    webviewView.webview.onDidReceiveMessage((msg) => {
+    webviewView.webview.onDidReceiveMessage(async (msg) => {
       if (msg.type === 'sendToEditor') {
         this._sendToEditor(msg.id);
+      } else if (msg.type === 'saveExercise') {
+        await this._handleSave(msg.id, webviewView.webview);
       } else if (msg.type === 'ready') {
         this._update();
       }
     });
   }
 
-  // ── Public API: dipanggil dari exerciseGenerator.ts ──────────────────────
-  // Nanti saat LLM sudah ada, panggil addGeneratedExercise() dengan data nyata.
-  // Untuk sekarang addDummyExercise() dipakai sebagai placeholder.
-
+  // ── Public API ───────────────────────────────────────────────────────────
   public addGeneratedExercise(data: Omit<GeneratedExercise, 'id'>) {
     this._counter++;
     this._exercises.push({ id: this._counter, ...data });
@@ -84,6 +91,7 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
           "assert has_three_elements([]) == False",
           "assert has_three_elements([1, 2, 3, 4]) == False",
         ],
+        solution: 'def has_three_elements(input_list):\n    return len(input_list) == 3',
         shot: '1-shot',
         filters_applied: ['Testcase Check'],
       },
@@ -101,23 +109,8 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
           'assert count_vowels("") == 0',
           'assert count_vowels("xyz") == 0',
         ],
+        solution: 'def count_vowels(input_string):\n    return sum(1 for c in input_string.lower() if c in "aeiou")',
         shot: '2-shot',
-        filters_applied: ['Testcase Check', 'Difficulty Check'],
-      },
-      {
-        title: 'Count Frequency',
-        topic: 'Dictionary',
-        difficulty: 'Medium',
-        problem_statement:
-          'Write a Python function that takes a list of integers and returns a dictionary where keys are the integers and values are their frequencies in the list.',
-        example: 'Input  : [1, 2, 2, 3, 3, 3]\nOutput : {1: 1, 2: 2, 3: 3}',
-        function_stub: 'def count_frequency(input_list):\n    # TODO: Implement this function\n    pass',
-        test_cases: [
-          'assert count_frequency([1, 2, 2, 3, 3, 3]) == {1: 1, 2: 2, 3: 3}',
-          'assert count_frequency([]) == {}',
-          'assert count_frequency([5]) == {5: 1}',
-        ],
-        shot: '3-shot',
         filters_applied: ['Testcase Check', 'Difficulty Check'],
       },
     ];
@@ -126,7 +119,38 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     this.addGeneratedExercise(dummy);
   }
 
-  // ── Format ke editor — sama persis dengan DatabaseViewProvider ────────────
+  // ── Handler: save exercise ke database ──────────────────────────────────
+  private async _handleSave(id: number, webview: vscode.Webview) {
+    const ex = this._exercises.find(e => e.id === id);
+    if (!ex) { return; }
+
+    // Beri tahu webview agar tombol save masuk state "saving"
+    webview.postMessage({ type: 'savingStart', id });
+
+    const result = await this._db.saveGeneratedExercise({
+      title:             ex.title,
+      topic:             ex.topic,
+      difficulty:        ex.difficulty,
+      problem_statement: ex.problem_statement,
+      example:           ex.example,
+      function_stub:     ex.function_stub,
+      test_cases:        ex.test_cases,
+      solution:          ex.solution ?? '',   // solution tersimpan di DB
+      shot:              ex.shot,
+      filters_applied:   ex.filters_applied,
+    });
+
+    if (result.ok) {
+      // Tandai exercise ini sudah tersimpan
+      webview.postMessage({ type: 'saveSuccess', id });
+      vscode.window.showInformationMessage(`Exercise "${ex.title}" saved to database.`);
+    } else {
+      webview.postMessage({ type: 'saveError', id });
+      vscode.window.showErrorMessage(`Failed to save exercise "${ex.title}".`);
+    }
+  }
+
+  // ── Format ke editor ─────────────────────────────────────────────────────
   private _sendToEditor(id: number) {
     const ex = this._exercises.find(e => e.id === id);
     if (!ex) { return; }
@@ -138,8 +162,8 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
       `Title        : ${ex.title}\n` +
       `Topic        : ${ex.topic}\n` +
       `Difficulty   : ${ex.difficulty}\n` +
-      (ex.shot            ? `Shot         : ${ex.shot}\n`                        : '') +
-      (ex.filters_applied ? `Filters      : ${ex.filters_applied.join(', ')}\n`  : '') +
+      (ex.shot            ? `Shot         : ${ex.shot}\n`                       : '') +
+      (ex.filters_applied ? `Filters      : ${ex.filters_applied.join(', ')}\n` : '') +
       `\n` +
       `Problem:\n${ex.problem_statement}\n\n` +
       `Example:\n${ex.example}\n` +
@@ -153,7 +177,8 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
   }
 
   private _update() {
-    this._view?.webview.postMessage({ type: 'update', exercises: this._exercises });
+    const safeExercises = this._exercises.map(({ solution: _solution, ...rest }) => rest);
+    this._view?.webview.postMessage({ type: 'update', exercises: safeExercises });
   }
 
   private _getHtml(webview: vscode.Webview): string {
@@ -238,8 +263,8 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     line-height: 1.4;
   }
 
-
-  .btn-arrow {
+  /* ── Tombol aksi di header card ── */
+  .btn-icon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -254,12 +279,27 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     font-size: 14px;
     padding: 0;
     flex-shrink: 0;
+    transition: opacity .1s, background .1s;
   }
-  .btn-arrow:hover {
+  .btn-icon:hover {
     opacity: 1;
     background: var(--vscode-toolbar-hoverBackground);
   }
-  .btn-arrow * { pointer-events: none; }
+  .btn-icon * { pointer-events: none; }
+
+  /* State: sudah tersimpan */
+  .btn-save.saved {
+    opacity: 1;
+    color: var(--vscode-terminal-ansiGreen, #4caf50);
+    cursor: default;
+  }
+  .btn-save.saved:hover { background: transparent; }
+
+  /* State: sedang menyimpan */
+  .btn-save.saving {
+    opacity: 0.5;
+    cursor: wait;
+  }
 
   .card-body {
     padding: 6px 10px 10px 22px;
@@ -312,6 +352,9 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
   const $empty = document.getElementById('empty');
   const $list  = document.getElementById('list');
 
+  // Track state per exercise: 'idle' | 'saving' | 'saved'
+  const saveState = {};
+
   function checkLayout() {
     $body.classList.toggle('horizontal', window.innerWidth > window.innerHeight * 1.5);
   }
@@ -321,10 +364,56 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
   vscode.postMessage({ type: 'ready' });
 
   window.addEventListener('message', ({ data }) => {
-    if (data.type === 'update') { render(data.exercises); }
+    if (data.type === 'update') {
+      render(data.exercises);
+    } else if (data.type === 'savingStart') {
+      setSaveState(data.id, 'saving');
+    } else if (data.type === 'saveSuccess') {
+      setSaveState(data.id, 'saved');
+    } else if (data.type === 'saveError') {
+      setSaveState(data.id, 'idle');
+    }
   });
 
+  // Update visual state tombol save tanpa re-render seluruh list
+  function setSaveState(id, state) {
+    saveState[id] = state;
+    const btn = document.querySelector('.btn-save[data-save="' + id + '"]');
+    if (!btn) { return; }
+
+    btn.classList.remove('saving', 'saved');
+
+    if (state === 'saving') {
+      btn.classList.add('saving');
+      btn.title = 'Saving...';
+      // Ganti icon ke loading (spin via codicon-loading)
+      btn.innerHTML = '<i class="codicon codicon-loading codicon-modifier-spin"></i>';
+      btn.disabled = true;
+    } else if (state === 'saved') {
+      btn.classList.add('saved');
+      btn.title = 'Saved to database';
+      btn.innerHTML = '<i class="codicon codicon-check"></i>';
+      btn.disabled = true;
+    } else {
+      btn.title = 'Save to database';
+      btn.innerHTML = '<i class="codicon codicon-save"></i>';
+      btn.disabled = false;
+    }
+  }
+
   $list.addEventListener('click', (e) => {
+    // Tombol Save
+    const btnSave = e.target.closest('.btn-save');
+    if (btnSave && !btnSave.disabled) {
+      e.stopPropagation();
+      const id = parseInt(btnSave.dataset.save);
+      if (saveState[id] !== 'saved' && saveState[id] !== 'saving') {
+        vscode.postMessage({ type: 'saveExercise', id });
+      }
+      return;
+    }
+
+    // Tombol Send to Editor
     const btnArrow = e.target.closest('.btn-arrow');
     if (btnArrow) {
       e.stopPropagation();
@@ -332,6 +421,7 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
       return;
     }
 
+    // Toggle collapse card
     const head = e.target.closest('.card-head');
     if (head) {
       const id   = head.dataset.id;
@@ -371,13 +461,39 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     $list.innerHTML = exercises.map(ex => {
       const isCollapsed = collapsed.has(String(ex.id));
       const testCasesText = (ex.test_cases || []).join('\\n');
+      const state = saveState[ex.id] || 'idle';
+
+      // Tentukan tampilan tombol save berdasarkan state
+      let saveIcon  = 'codicon-save';
+      let saveTitle = 'Save to database';
+      let saveClass = '';
+      let saveDisabled = '';
+      if (state === 'saving') {
+        saveIcon    = 'codicon-loading codicon-modifier-spin';
+        saveTitle   = 'Saving...';
+        saveClass   = 'saving';
+        saveDisabled = 'disabled';
+      } else if (state === 'saved') {
+        saveIcon    = 'codicon-check';
+        saveTitle   = 'Saved to database';
+        saveClass   = 'saved';
+        saveDisabled = 'disabled';
+      }
 
       return \`
 <div class="card">
   <div class="card-head\${isCollapsed ? ' collapsed' : ''}" data-id="\${ex.id}">
     <span class="chevron codicon codicon-chevron-down"></span>
     <span class="card-title">EXERCISE \${ex.id}</span>
-    <button class="btn-arrow codicon codicon-arrow-up" data-send="\${ex.id}" title="Send to Editor"></button>
+    <button class="btn-icon btn-save \${saveClass}"
+            data-save="\${ex.id}"
+            title="\${saveTitle}"
+            \${saveDisabled}>
+      <i class="codicon \${saveIcon}"></i>
+    </button>
+    <button class="btn-icon btn-arrow codicon codicon-arrow-up"
+            data-send="\${ex.id}"
+            title="Send to Editor"></button>
   </div>
   <div class="card-body\${isCollapsed ? ' hidden' : ''}" id="body-\${ex.id}"><b>Topic:</b> \${escapeHtml(ex.topic)}
 

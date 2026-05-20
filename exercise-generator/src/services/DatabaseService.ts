@@ -5,13 +5,28 @@ export interface SeedExercise {
   id: number;
   title: string;
   difficulty: 'easy' | 'intermediate' | 'hard';
-  topic?: string;           // ← TAMBAHAN: nama topik, e.g. "String", "List", "Nested List"
+  topic?: string;
   type?: 'concept' | 'domain';
   keywords?: string[];
   problem_statement: string;
   example: string;
   solution: string;
   test_cases: string[];
+}
+
+// Exercise hasil generate dari LLM yang akan disimpan ke database.
+// solution disertakan tapi tidak ditampilkan di UI exercise panel.
+export interface GeneratedExerciseRecord {
+  title: string;
+  topic: string;
+  difficulty: string;
+  problem_statement: string;
+  example: string;
+  function_stub: string;
+  test_cases: string[];
+  solution: string;           // disimpan di DB, tidak pernah tampil di UI
+  shot?: string;
+  filters_applied?: string[];
 }
 
 export class DatabaseService {
@@ -94,6 +109,33 @@ export class DatabaseService {
     } catch (err) {
       console.error('[ExGen DB] getAllExercises failed:', err);
       return [];
+    }
+  }
+
+  /**
+   * Menyimpan exercise hasil generate LLM ke tabel terpisah di database.
+   * Solution ikut tersimpan tapi tidak pernah ditampilkan di UI.
+   */
+  async saveGeneratedExercise(exercise: GeneratedExerciseRecord): Promise<{ ok: boolean; id?: number }> {
+    try {
+      // Normalisasi difficulty ke lowercase agar sesuai format seeds
+      const diffMap: Record<string, string> = {
+        'Easy': 'easy',
+        'Medium': 'intermediate',
+        'Hard': 'hard'
+      };
+
+      const normalized = {
+        ...exercise,
+        difficulty: diffMap[exercise.difficulty] ?? exercise.difficulty.toLowerCase()
+      };
+
+      const payload = JSON.stringify(normalized);
+      const result = await this._run(['save_generated', payload]);
+      return result as { ok: boolean; id?: number };
+    } catch (err) {
+      console.error('[ExGen DB] saveGeneratedExercise failed:', err);
+      return { ok: false };
     }
   }
 }

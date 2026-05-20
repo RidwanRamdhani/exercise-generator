@@ -8,8 +8,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const db = new DatabaseService(context.extensionPath);
   await db.importSeeds();
 
-  const viewProvider = new ExerciseViewProvider(context.extensionUri);
-  const dbViewProvider = new DatabaseViewProvider(context.extensionUri, db);
+  const viewProvider    = new ExerciseViewProvider(context.extensionUri, db);
+  const dbViewProvider  = new DatabaseViewProvider(context.extensionUri, db);
 
   const view = vscode.window.registerWebviewViewProvider(
     'exerciseView',
@@ -21,40 +21,36 @@ export async function activate(context: vscode.ExtensionContext) {
     dbViewProvider
   );
 
-  // More Exercise button
+
   const moreExercise = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
     100
   );
-
-  moreExercise.text = "$(add) More exercise";
-  moreExercise.tooltip = "Klik untuk menambah exercise";
-  moreExercise.command = "exercise-generator.moreExercise";
+  moreExercise.text    = '$(add) More exercise';
+  moreExercise.tooltip = 'Klik untuk menambah exercise';
+  moreExercise.command = 'exercise-generator.moreExercise';
   moreExercise.show();
 
 
-  // Show Database button
   const showDatabase = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
     99
   );
-
-  showDatabase.text = "Show Database";
-  showDatabase.tooltip = "Exercise yang tersimpan di database";
-  showDatabase.command = "exercise-generator.showDatabase";
+  showDatabase.text    = 'Show Database';
+  showDatabase.tooltip = 'Exercise yang tersimpan di database';
+  showDatabase.command = 'exercise-generator.showDatabase';
   showDatabase.show();
 
+  
   const moreExerciseCmd = vscode.commands.registerCommand(
     'exercise-generator.moreExercise',
     () => exerciseGeneratorCommand(viewProvider, db, context.extensionPath)
   );
 
-   const showDatabaseCmd = vscode.commands.registerCommand(
-     'exercise-generator.showDatabase',
-     () => {
-       vscode.commands.executeCommand('databaseView.focus');
-     }
-   );
+  const showDatabaseCmd = vscode.commands.registerCommand(
+    'exercise-generator.showDatabase',
+    () => vscode.commands.executeCommand('databaseView.focus')
+  );
 
   context.subscriptions.push(
     moreExercise,

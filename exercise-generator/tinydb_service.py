@@ -1,3 +1,4 @@
+import cmd
 import sys
 import json
 import os
@@ -77,6 +78,20 @@ def main():
 
     elif command == 'get_all':
         get_all_exercises()
+
+    elif command == 'save_generated':
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Missing payload"}))
+            sys.exit(1)
+        payload = json.loads(sys.argv[2])
+    
+        db = get_db()
+        new_id = db.insert(payload)
+    
+        Exercise = Query()
+        db.update({'id': new_id}, doc_ids=[new_id])
+    
+        print(json.dumps({"ok": True, "id": new_id}))
 
     else:
         print(json.dumps({"error": f"Unknown command: {command}"}))
