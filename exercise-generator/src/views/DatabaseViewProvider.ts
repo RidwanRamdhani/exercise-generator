@@ -89,10 +89,13 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
     }
     if (!ex) { return; }
 
-    const firstLine = ex.solution.split('\n')[0];
-    const funcStub = `${firstLine}\n    # TODO: Implement this function\n    pass`;
+    // ── Function stub ─────────────────────────────────────────────────────────
+    // Exercise hasil generate LLM → punya function_stub (misal "def foo(x):\n    pass")
+    // Exercise seed               → tidak punya function_stub, ambil baris pertama solution
+    const funcStub = ex.function_stub
+      ? ex.function_stub
+      : `${ex.solution.split('\n')[0]}\n    # TODO: Implement this function\n    pass`;
 
-    // Assert langsung (tanpa komentar), diletakkan di bawah function stub
     const testCases = (ex.test_cases || []).join('\n');
 
     const difficultyLabel =
@@ -429,8 +432,8 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
         const list = topics[topic] || [];
         if (list.length === 0) { continue; }
 
-        const sectionId = 'section-' + topic.replace(/\\s+/g, '-');
-        const listId    = 'list-'    + topic.replace(/\\s+/g, '-');
+        const sectionId = 'section-' + topic.replace(/\s+/g, '-');
+        const listId    = 'list-'    + topic.replace(/\s+/g, '-');
 
         html += \`
           <div class="section">

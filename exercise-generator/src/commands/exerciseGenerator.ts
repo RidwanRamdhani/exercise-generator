@@ -73,27 +73,94 @@ export async function exerciseGeneratorCommand(
   console.log('[ExGen] Config:', config);
   console.log('[ExGen] Few-shot examples:', fewShotExamples.map(e => e.title));
 
+  // Tentukan filter yang aktif dari pilihan user
+  const applyTestcaseCheck = config.filters.includes('Testcase Check');
+
+  // ── Status bar loading indicator ─────────────────────────────────────────
+  // Muncul setelah semua dialog input selesai, hilang otomatis setelah
+  // proses LLM + filter selesai (baik sukses maupun error).
+  const statusBar = vscode.window.setStatusBarMessage('$(sync~spin) ExGen: Generating exercises...');
+
   try {
     const results = await callLLM(config, fewShotExamples, extensionPath);
 
+    let passed  = 0;
+    let skipped = 0;
+
     for (const result of results) {
+      // ── Filter Chain (sesuai paper Fig. 6) ───────────────────────────────
+      // Filter hanya dijalankan jika user memilih "Testcase Check".
+      // Chain: Compilation Check → Unit Testing Check
+      // Jika salah satu gagal, exercise dibuang dan tidak ditampilkan.
+      if (applyTestcaseCheck) {
+        vscode.window.setStatusBarMessage(`$(sync~spin) ExGen: Checking "${result.title}"...`);
+
+        const filterResult = await db.runFilters({
+          solution:   result.solution ?? '',
+          test_cases: result.test_cases ?? []
+        });
+
+        if (!filterResult.passed) {
+          skipped++;
+
+          // Log detail kegagalan untuk debugging
+          if (!filterResult.compilation.passed) {
+            console.warn(
+              `[ExGen] Exercise "${result.title}" FAILED compilation:`,
+              filterResult.compilation.error
+            );
+          } else if (filterResult.unit_test && !filterResult.unit_test.passed) {
+            console.warn(
+              `[ExGen] Exercise "${result.title}" FAILED unit test:`,
+              filterResult.unit_test.error
+            );
+          }
+
+          // Buang exercise ini — tidak push ke viewProvider
+          continue;
+        }
+
+        console.log(`[ExGen] Exercise "${result.title}" PASSED all filters.`);
+      }
+
+      // ── Exercise lolos filter (atau filter tidak diaktifkan) ──────────────
       const exercise: Omit<GeneratedExercise, 'id'> = {
-        title: result.title,
-        topic: config.topic,
-        difficulty: config.difficulty,
+        title:             result.title,
+        topic:             config.topic,
+        difficulty:        config.difficulty,
         problem_statement: result.problem_statement,
-        example: result.example,
-        function_stub: result.function_stub,
-        test_cases: result.test_cases,
-        shot: config.shot,
-        filters_applied: config.filters
+        example:           result.example,
+        function_stub:     result.function_stub,
+        test_cases:        result.test_cases,
+        shot:              config.shot,
+        filters_applied:   config.filters
       };
 
       viewProvider.addGeneratedExercise(exercise);
+      passed++;
     }
+
+    // Beri tahu user ringkasan hasil filter
+    if (applyTestcaseCheck && skipped > 0) {
+      vscode.window.showInformationMessage(
+        `[ExGen] ${passed} exercise(s) passed filters. ` +
+        `${skipped} exercise(s) were discarded (failed compilation or unit test).`
+      );
+    }
+
+    if (passed === 0) {
+      vscode.window.showWarningMessage(
+        '[ExGen] No ready-to-use exercises were generated. ' +
+        'Try again or adjust the keyword/difficulty.'
+      );
+    }
+
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     vscode.window.showErrorMessage(`Failed to generate exercise: ${message}`);
+  } finally {
+    // Selalu hilangkan status bar message setelah selesai
+    statusBar.dispose();
   }
 }
 
@@ -103,6 +170,7 @@ type LLMExercise = {
   example: string;
   function_stub: string;
   test_cases: string[];
+  solution?: string;
 };
 
 type ChatMessage = {
@@ -164,13 +232,11 @@ function buildMessages(
   //   assistant: "Here is one {difficulty} Python exercise: {exercise JSON}"
   // Each example is one user+assistant pair to reinforce format and difficulty.
   for (const ex of fewShotExamples) {
-    // User turn: standard request for a single exercise.
     messages.push({
       role: 'user',
       content: `Give me a ${difficultyLabel} Python exercise.`
     });
 
-    // Assistant turn: includes the full example to demonstrate the exact JSON schema and difficulty calibration.
     const exampleJson = JSON.stringify({
       title: ex.title,
       problem_statement: ex.problem_statement,
@@ -182,23 +248,19 @@ function buildMessages(
 
     messages.push({
       role: 'assistant',
-      content:
-        `Here is one ${difficultyLabel} Python exercise:\n${exampleJson}`
+      content: `Here is one ${difficultyLabel} Python exercise:\n${exampleJson}`
     });
   }
 
   // Final message: user request with the keyword.
-  // Requests N new exercises and reiterates the JSON format.
   const isZeroShot = fewShotExamples.length === 0;
 
   const finalUserContent = isZeroShot
-    // Zero-shot: no prior turns, so the request includes additional context.
     ? `Give me 3 ${difficultyLabel} Python exercises using this keyword: ` +
       `${config.topic}. ` +
       `Return a JSON array where each element has fields: title, ` +
       `problem_statement, example, function_stub, test_cases, solution. ` +
       `Return JSON only.`
-    // Few-shot: examples already provided, so the request is concise.
     : `Good. I want 3 more ${difficultyLabel} Python exercises using this ` +
       `keyword: ${config.topic}. ` +
       `Print the result with the same format as the previous ones. ` +
@@ -218,10 +280,10 @@ async function callLLM(
   extensionPath: string
 ): Promise<LLMExercise[]> {
   loadEnvFromFile(extensionPath);
-  
+
   const useOllama = process.env.USE_OLLAMA === 'true';
   const apiKey = useOllama ? 'ollama' : process.env.OPENROUTER_API_KEY;
-  
+
   if (!useOllama && !apiKey) {
     throw new Error('Missing OPENROUTER_API_KEY in environment. Set USE_OLLAMA=true for local Ollama.');
   }
@@ -235,7 +297,6 @@ async function callLLM(
   };
   const difficultyLabel = diffMap[config.difficulty];
 
-  // Build prompt messages
   const messages = buildMessages(config, fewShotExamples, difficultyLabel);
 
   console.log('[ExGen] Prompting strategy:', fewShotExamples.length === 0 ? 'zero-shot' : `${fewShotExamples.length}-shot`);
@@ -249,8 +310,10 @@ async function callLLM(
     messages
   });
 
-  const baseUrl = useOllama ? 'http://localhost:11434/v1/chat/completions' : 'https://openrouter.ai/api/v1/chat/completions';
-  
+  const baseUrl = useOllama
+    ? 'http://localhost:11434/v1/chat/completions'
+    : 'https://openrouter.ai/api/v1/chat/completions';
+
   const responseText = await httpRequest(
     baseUrl,
     payload,
@@ -271,9 +334,7 @@ async function callLLM(
     throw new Error('LLM response is not valid JSON');
   }
 
-  const content = useOllama 
-    ? responseJson.choices?.[0]?.message?.content 
-    : responseJson.choices?.[0]?.message?.content;
+  const content = responseJson.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error('LLM response missing content');
   }
@@ -300,23 +361,20 @@ function loadEnvFromFile(extensionPath: string): void {
     .map(root => path.join(root, '.env'))
     .find(candidate => fs.existsSync(candidate));
 
-  if (!envPath) {
-    return;
-  }
+  if (!envPath) { return; }
 
   const content = fs.readFileSync(envPath, 'utf8');
   for (const line of content.split(/\r?\n/)) {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) {
-      continue;
-    }
+    if (!trimmed || trimmed.startsWith('#')) { continue; }
     const idx = trimmed.indexOf('=');
-    if (idx === -1) {
-      continue;
-    }
+    if (idx === -1) { continue; }
     const key = trimmed.slice(0, idx).trim();
     let value = trimmed.slice(idx + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1);
     }
     if (key && !(key in process.env)) {
@@ -325,24 +383,25 @@ function loadEnvFromFile(extensionPath: string): void {
   }
 }
 
-function httpRequest(url: string, body: string, headers: Record<string, string>, useHttp: boolean = false): Promise<string> {
+function httpRequest(
+  url: string,
+  body: string,
+  headers: Record<string, string>,
+  useHttp: boolean = false
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const requestFn = useHttp ? http.request : https.request;
-    const request = requestFn(
-      url,
-      { method: 'POST', headers },
-      (res) => {
-        let data = '';
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
-          if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-            resolve(data);
-          } else {
-            reject(new Error(`HTTP ${res.statusCode}: ${data}`));
-          }
-        });
-      }
-    );
+    const request = requestFn(url, { method: 'POST', headers }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(data);
+        } else {
+          reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+        }
+      });
+    });
 
     request.on('error', (err) => reject(err));
     request.write(body);
@@ -353,21 +412,17 @@ function httpRequest(url: string, body: string, headers: Record<string, string>,
 function parseJsonFromContent(content: string): LLMExercise | LLMExercise[] {
   const trimmed = content.trim();
 
-  // Strip markdown code fences if present (```json ... ```).
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
   const jsonStr = fenced ? fenced[1].trim() : trimmed;
 
-  // Try JSON array first (LLM returned multiple exercises).
   if (jsonStr.startsWith('[')) {
     return JSON.parse(jsonStr) as LLMExercise[];
   }
 
-  // Single JSON object.
   if (jsonStr.startsWith('{')) {
     return JSON.parse(jsonStr) as LLMExercise;
   }
 
-  // Fallback: extract the first JSON object or array from prose.
   const match = jsonStr.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
   if (!match) {
     throw new Error('LLM content does not contain JSON');

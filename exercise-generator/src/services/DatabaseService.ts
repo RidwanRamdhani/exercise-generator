@@ -11,11 +11,10 @@ export interface SeedExercise {
   problem_statement: string;
   example: string;
   solution: string;
+  function_stub?: string;  
   test_cases: string[];
 }
 
-// Exercise hasil generate dari LLM yang akan disimpan ke database.
-// solution disertakan tapi tidak ditampilkan di UI exercise panel.
 export interface GeneratedExerciseRecord {
   title: string;
   topic: string;
@@ -24,10 +23,37 @@ export interface GeneratedExerciseRecord {
   example: string;
   function_stub: string;
   test_cases: string[];
-  solution: string;           // disimpan di DB, tidak pernah tampil di UI
+  solution: string;           
   shot?: string;
   filters_applied?: string[];
 }
+
+// ── Filter result types ───────────────────────────────────────────────────────
+
+export interface CheckResult {
+  passed: boolean;
+  error: string | null;
+}
+
+/**
+ * Hasil dari run_filters (chain: Compilation → Unit Testing).
+ *
+ * - compilation : selalu ada
+ * - unit_test   : null jika compilation gagal (tidak dijalankan)
+ * - passed      : true hanya jika semua filter lolos
+ */
+export interface FilterResult {
+  passed: boolean;
+  compilation: CheckResult;
+  unit_test: CheckResult | null;
+}
+
+export interface FilterPayload {
+  solution: string;
+  test_cases: string[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export class DatabaseService {
   private scriptPath: string;
@@ -114,11 +140,9 @@ export class DatabaseService {
 
   /**
    * Menyimpan exercise hasil generate LLM ke tabel terpisah di database.
-   * Solution ikut tersimpan tapi tidak pernah ditampilkan di UI.
    */
   async saveGeneratedExercise(exercise: GeneratedExerciseRecord): Promise<{ ok: boolean; id?: number }> {
     try {
-      // Normalisasi difficulty ke lowercase agar sesuai format seeds
       const diffMap: Record<string, string> = {
         'Easy': 'easy',
         'Medium': 'intermediate',
@@ -136,6 +160,29 @@ export class DatabaseService {
     } catch (err) {
       console.error('[ExGen DB] saveGeneratedExercise failed:', err);
       return { ok: false };
+    }
+  }
+
+  /**
+   * Jalankan filter chain (Compilation Check → Unit Testing Check) via Python.
+   * Sesuai paper ExGen Fig. 6.
+   *
+   * Mengembalikan FilterResult yang berisi detail tiap tahap.
+   * Jika terjadi error tak terduga (Python crash, dsb.), dianggap gagal.
+   */
+  async runFilters(payload: FilterPayload): Promise<FilterResult> {
+    const fallback: FilterResult = {
+      passed: false,
+      compilation: { passed: false, error: 'Filter runner failed unexpectedly' },
+      unit_test: null
+    };
+
+    try {
+      const result = await this._run(['run_filters', JSON.stringify(payload)]);
+      return result as FilterResult;
+    } catch (err) {
+      console.error('[ExGen DB] runFilters failed:', err);
+      return fallback;
     }
   }
 }
