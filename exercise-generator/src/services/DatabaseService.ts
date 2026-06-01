@@ -36,16 +36,18 @@ export interface CheckResult {
 }
 
 /**
- * Hasil dari run_filters (chain: Compilation → Unit Testing).
+ * Hasil dari run_filters (chain: Compilation → Unit Testing → Difficulty).
  *
- * - compilation : selalu ada
- * - unit_test   : null jika compilation gagal (tidak dijalankan)
- * - passed      : true hanya jika semua filter lolos
+ * - compilation   : selalu ada
+ * - unit_test     : null jika compilation gagal (tidak dijalankan)
+ * - difficulty    : null jika unit_test gagal (tidak dijalankan)
+ * - passed        : true hanya jika semua filter lolos
  */
 export interface FilterResult {
   passed: boolean;
   compilation: CheckResult;
   unit_test: CheckResult | null;
+  difficulty_check?: CheckResult | null;
 }
 
 export interface FilterPayload {
@@ -163,26 +165,49 @@ export class DatabaseService {
     }
   }
 
-  /**
-   * Jalankan filter chain (Compilation Check → Unit Testing Check) via Python.
-   * Sesuai paper ExGen Fig. 6.
-   *
-   * Mengembalikan FilterResult yang berisi detail tiap tahap.
-   * Jika terjadi error tak terduga (Python crash, dsb.), dianggap gagal.
-   */
-  async runFilters(payload: FilterPayload): Promise<FilterResult> {
-    const fallback: FilterResult = {
-      passed: false,
-      compilation: { passed: false, error: 'Filter runner failed unexpectedly' },
-      unit_test: null
-    };
+/**
+    * Jalankan filter chain (Compilation Check → Unit Testing Check) via Python.
+    * Sesuai paper ExGen Fig. 6.
+    *
+    * Mengembalikan FilterResult yang berisi detail tiap tahap.
+    * Jika terjadi error tak terduga (Python crash, dsb.), dianggap gagal.
+    */
+   async runFilters(payload: FilterPayload): Promise<FilterResult> {
+     const fallback: FilterResult = {
+       passed: false,
+       compilation: { passed: false, error: 'Filter runner failed unexpectedly' },
+       unit_test: null
+     };
 
-    try {
-      const result = await this._run(['run_filters', JSON.stringify(payload)]);
-      return result as FilterResult;
-    } catch (err) {
-      console.error('[ExGen DB] runFilters failed:', err);
-      return fallback;
-    }
-  }
-}
+     try {
+       const result = await this._run(['run_filters', JSON.stringify(payload)]);
+       return result as FilterResult;
+     } catch (err) {
+       console.error('[ExGen DB] runFilters failed:', err);
+       return fallback;
+     }
+   }
+
+   /**
+    * Jalankan difficulty check via LLM self-reflection.
+    * Meminta LLM untuk memverifikasi apakah exercise sesuai difficulty yang diminta.
+    */
+   async checkDifficulty(
+     exercise: GeneratedExerciseRecord,
+     expectedDifficulty: 'Easy' | 'Medium' | 'Hard'
+   ): Promise<CheckResult> {
+     try {
+       const result = await this._run([
+         'check_difficulty',
+         JSON.stringify({
+           exercise,
+           expectedDifficulty
+         })
+       ]);
+       return result as CheckResult;
+     } catch (err) {
+       console.error('[ExGen DB] checkDifficulty failed:', err);
+       return { passed: false, error: 'Difficulty check failed unexpectedly' };
+     }
+   }
+ }

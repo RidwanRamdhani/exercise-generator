@@ -130,6 +130,96 @@ def run_filters(payload: dict) -> dict:
     print(json.dumps(result))
     return result
 
+def check_difficulty(payload: dict) -> dict:
+    """
+    LLM-based self-reflection untuk memverifikasi difficulty exercise.
+    Meminta LLM mengklasifikasikan apakah exercise sesuai level yang diminta.
+
+    Args:
+        payload: {
+            exercise: { title, problem_statement, example, function_stub, test_cases, solution },
+            expectedDifficulty: 'Easy' | 'Medium' | 'Hard'
+        }
+
+    Returns:
+        { "passed": bool, "error": str|null }
+    """
+    import urllib.request
+    import urllib.error
+
+    exercise = payload.get("exercise", {})
+    expected = payload.get("expectedDifficulty", "Medium")
+
+    difficulty_map = {
+        "Easy": "easy",
+        "Medium": "intermediate",
+        "Hard": "hard"
+    }
+    expected_label = difficulty_map.get(expected, "intermediate")
+
+    prompt = (
+        "You are a teaching assistant evaluating whether a Python exercise matches the requested difficulty level.\n\n"
+        f"Analyze the following exercise and determine if it matches '{expected_label}' difficulty. Consider:\n"
+        "- Easy: basic concepts, straightforward logic, few lines of code\n"
+        "- Intermediate: combines multiple concepts, more complex reasoning\n"
+        "- Hard: requires deeper understanding, advanced problem-solving\n\n"
+        'Respond only with JSON: {"matches": true/false, "reason": "brief explanation"}.\n\n'
+        f"Exercise title: {exercise.get('title', '')}\n"
+        f"Problem: {exercise.get('problem_statement', '')}\n"
+        f"Example: {exercise.get('example', '')}\n"
+        f"Function stub: {exercise.get('function_stub', '')}\n"
+    )
+
+    use_ollama = os.environ.get("USE_OLLAMA") == "true"
+    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    model = os.environ.get("OPENROUTER_MODEL", "llama3.2" if use_ollama else "nvidia/nemotron-3-super-120b-a12b:free")
+
+    messages = [{"role": "user", "content": prompt}]
+    data = json.dumps({
+        "model": model,
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 500
+    }).encode("utf-8")
+
+    url = "http://localhost:11434/v1/chat/completions" if use_ollama else "https://openrouter.ai/api/v1/chat/completions"
+    req = urllib.request.Request(url, data=data, method="POST", headers={
+        "Content-Type": "application/json",
+        "Authorization": "" if use_ollama else f"Bearer {api_key}"
+    })
+
+    try:
+        with urllib.request.urlopen(req, timeout=60) as response:
+            resp_json = json.loads(response.read().decode("utf-8"))
+            content = resp_json.get("choices", [{}])[0].get("message", {}).get("content", "")
+            # Debug: print raw LLM response
+            print(json.dumps({"debug_llm_response": content}), file=sys.stderr)
+            # Try to parse JSON, handle cases where LLM doesn't follow format
+            try:
+                match_json = json.loads(content.strip()) if content else {}
+                matches = bool(match_json.get("matches", False))
+                reason = match_json.get("reason", "No reason provided by LLM")
+            except json.JSONDecodeError:
+                # LLM didn't return JSON, try to detect true/false
+                matches = "true" in content.lower() and "matches" not in content.lower()
+                if not matches:
+                    reason = f"LLM response was not valid JSON: {content[:200]}"
+                else:
+                    reason = "Detected as match from non-JSON response"
+            result = {
+                "passed": matches,
+                "error": None if matches else f"Classification mismatch: expected '{expected}'. Reason: {reason}"
+            }
+    except Exception as e:
+        result = {
+            "passed": False,
+            "error": f"Difficulty check error: {e}"
+        }
+
+    print(json.dumps(result))
+    return result
+
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({"error": "No command provided"}))
@@ -192,6 +282,13 @@ def main():
             sys.exit(1)
         payload = json.loads(sys.argv[2])
         run_filters(payload)
+
+    elif command == 'check_difficulty':
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Missing payload"}))
+            sys.exit(1)
+        payload = json.loads(sys.argv[2])
+        check_difficulty(payload)
 
     else:
         print(json.dumps({"error": f"Unknown command: {command}"}))

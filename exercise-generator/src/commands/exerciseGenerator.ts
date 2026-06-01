@@ -13,7 +13,7 @@ import {
 	showExerciseSummary
 } from '../dialogs';
 import { ExerciseViewProvider, GeneratedExercise } from '../views/ExerciseViewProvider';
-import { DatabaseService } from '../services/DatabaseService';
+import { DatabaseService, FilterResult } from '../services/DatabaseService';
 
 export async function exerciseGeneratorCommand(
   viewProvider: ExerciseViewProvider,
@@ -75,6 +75,7 @@ export async function exerciseGeneratorCommand(
 
   // Tentukan filter yang aktif dari pilihan user
   const applyTestcaseCheck = config.filters.includes('Testcase Check');
+  const applyDifficultyCheck = config.filters.includes('Difficulty Check');
 
   // ── Status bar loading indicator ─────────────────────────────────────────
   // Muncul setelah semua dialog input selesai, hilang otomatis setelah
@@ -92,10 +93,15 @@ export async function exerciseGeneratorCommand(
       // Filter hanya dijalankan jika user memilih "Testcase Check".
       // Chain: Compilation Check → Unit Testing Check
       // Jika salah satu gagal, exercise dibuang dan tidak ditampilkan.
+      // ── Difficulty Check (LLM Self-Reflection) ────────────────────────────
+      // Jika "Difficulty Check" dipilih, LLM memverifikasi apakah exercise sesuai level.
+
+      let filterResult: FilterResult | null = null;
+
       if (applyTestcaseCheck) {
         vscode.window.setStatusBarMessage(`$(sync~spin) ExGen: Checking "${result.title}"...`);
 
-        const filterResult = await db.runFilters({
+        filterResult = await db.runFilters({
           solution:   result.solution ?? '',
           test_cases: result.test_cases ?? []
         });
@@ -120,7 +126,30 @@ export async function exerciseGeneratorCommand(
           continue;
         }
 
-        console.log(`[ExGen] Exercise "${result.title}" PASSED all filters.`);
+        console.log(`[ExGen] Exercise "${result.title}" PASSED test filters.`);
+      }
+
+      if (applyDifficultyCheck) {
+        vscode.window.setStatusBarMessage(`$(sync~spin) ExGen: Verifying difficulty "${result.title}"...`);
+
+        const difficultyCheck = await db.checkDifficulty(
+          { ...result, topic: config.topic, difficulty: config.difficulty, shot: config.shot, filters_applied: config.filters, solution: result.solution ?? '' },
+          config.difficulty
+        );
+
+        console.log(`[ExGen] Difficulty check result for "${result.title}"`, difficultyCheck);
+
+        if (!difficultyCheck.passed) {
+          skipped++;
+          console.warn(
+            `[ExGen] Exercise "${result.title}" FAILED difficulty check:`,
+            difficultyCheck.error,
+            `Problem stmt: ${result.problem_statement.substring(0, 100)}...`
+          );
+          continue;
+        }
+
+        console.log(`[ExGen] Exercise "${result.title}" PASSED difficulty check.`);
       }
 
       // ── Exercise lolos filter (atau filter tidak diaktifkan) ──────────────
@@ -141,10 +170,11 @@ export async function exerciseGeneratorCommand(
     }
 
     // Beri tahu user ringkasan hasil filter
-    if (applyTestcaseCheck && skipped > 0) {
+    const difficultyMsg = applyDifficultyCheck ? ' difficulty check,' : '';
+    if ((applyTestcaseCheck || applyDifficultyCheck) && skipped > 0) {
       vscode.window.showInformationMessage(
         `[ExGen] ${passed} exercise(s) passed filters. ` +
-        `${skipped} exercise(s) were discarded (failed compilation or unit test).`
+        `${skipped} exercise(s) were discarded (failed compilation, unit test${difficultyMsg} or difficulty mismatch).`
       );
     }
 
