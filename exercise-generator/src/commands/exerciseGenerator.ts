@@ -144,7 +144,7 @@ export async function exerciseGeneratorCommand(
           console.warn(
             `[ExGen] Exercise "${result.title}" FAILED difficulty check:`,
             difficultyCheck.error,
-            `Problem stmt: ${result.problem_statement.substring(0, 100)}...`
+            `Problem stmt: ${result.problem_statement.substring(0, 5000)}`
           );
           continue;
         }
