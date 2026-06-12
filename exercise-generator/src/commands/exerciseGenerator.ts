@@ -71,64 +71,78 @@ export async function exerciseGeneratorCommand(
   );
 
   console.log('[ExGen] Config:', config);
-  console.log('[ExGen] Few-shot examples:', fewShotExamples.map(e => e.title));
+  console.log('[ExGen] Few-shot examples:', fewShotExamples.map((e, i) =>
+    `\n  [Shot ${i + 1}] ${e.title}: ${e.problem_statement}`
+  ).join(''));
 
-  // Tentukan filter yang aktif dari pilihan user
   const applyTestcaseCheck = config.filters.includes('Testcase Check');
   const applyDifficultyCheck = config.filters.includes('Difficulty Check');
 
-  // ── Status bar loading indicator ─────────────────────────────────────────
-  // Muncul setelah semua dialog input selesai, hilang otomatis setelah
-  // proses LLM + filter selesai (baik sukses maupun error).
+  const sessionId = `${config.topic}-${config.difficulty}-${config.shot}-${Date.now()}`;
+  const csvPath = path.join(extensionPath, 'exgen_results.csv');
+  let exerciseNo = 0;
+
   const statusBar = vscode.window.setStatusBarMessage('$(sync~spin) ExGen: Generating exercises...');
 
   try {
-    const results = await callLLM(config, fewShotExamples, extensionPath);
+    const { exercises: results, model: usedModel } = await callLLM(config, fewShotExamples, extensionPath);
 
     let passed  = 0;
     let skipped = 0;
 
     for (const result of results) {
-      // ── Filter Chain (sesuai paper Fig. 6) ───────────────────────────────
-      // Filter hanya dijalankan jika user memilih "Testcase Check".
-      // Chain: Compilation Check → Unit Testing Check
-      // Jika salah satu gagal, exercise dibuang dan tidak ditampilkan.
-      // ── Difficulty Check (LLM Self-Reflection) ────────────────────────────
-      // Jika "Difficulty Check" dipilih, LLM memverifikasi apakah exercise sesuai level.
+      exerciseNo++;
 
-      let filterResult: FilterResult | null = null;
+      let unitTestStatus    = '';
+      let unitTestError     = '';
+      let unitTestReasoning = '';
+      let diffCheckStatus    = '';
+      let diffCheckError     = '';
+      let diffCheckReasoning = '';
 
+      // ── Filter Chain ──────────────────────────────────────────────────────
       if (applyTestcaseCheck) {
         vscode.window.setStatusBarMessage(`$(sync~spin) ExGen: Checking "${result.title}"...`);
 
-        filterResult = await db.runFilters({
+        const filterResult = await db.runFilters({
           solution:   result.solution ?? '',
           test_cases: result.test_cases ?? []
         });
 
         if (!filterResult.passed) {
           skipped++;
+          unitTestStatus = 'failed';
 
-          // Log detail kegagalan untuk debugging
           if (!filterResult.compilation.passed) {
-            console.warn(
-              `[ExGen] Exercise "${result.title}" FAILED compilation:`,
-              filterResult.compilation.error
-            );
+            unitTestError     = filterResult.compilation.error ?? '';
+            unitTestReasoning = `Compilation failed: ${unitTestError}`;
+            console.warn(`[ExGen] Exercise "${result.title}" FAILED compilation:`, unitTestError);
           } else if (filterResult.unit_test && !filterResult.unit_test.passed) {
-            console.warn(
-              `[ExGen] Exercise "${result.title}" FAILED unit test:`,
-              filterResult.unit_test.error
-            );
+            unitTestError     = filterResult.unit_test.error ?? '';
+            unitTestReasoning = `Unit test failed: ${unitTestError}`;
+            console.warn(`[ExGen] Exercise "${result.title}" FAILED unit test:`, unitTestError);
           }
 
-          // Buang exercise ini — tidak push ke viewProvider
+          console.warn(
+            `[ExGen] Exercise "${result.title}" FAILED test filters.`,
+            `Reason: ${unitTestReasoning}`,
+            `Problem stmt: ${result.problem_statement.substring(0, 5000)}`
+          );
+
+          appendToCSV(
+            csvPath, sessionId, usedModel, config, fewShotExamples,
+            exerciseNo, result.title, result.problem_statement,
+            unitTestStatus, unitTestError, unitTestReasoning,
+            diffCheckStatus, diffCheckError, diffCheckReasoning
+          );
           continue;
         }
 
+        unitTestStatus = 'passed';
         console.log(`[ExGen] Exercise "${result.title}" PASSED test filters.`);
       }
 
+      // ── Difficulty Check ──────────────────────────────────────────────────
       if (applyDifficultyCheck) {
         vscode.window.setStatusBarMessage(`$(sync~spin) ExGen: Verifying difficulty "${result.title}"...`);
 
@@ -141,18 +155,38 @@ export async function exerciseGeneratorCommand(
 
         if (!difficultyCheck.passed) {
           skipped++;
+          diffCheckStatus    = 'failed';
+          diffCheckError     = difficultyCheck.error ?? '';
+          diffCheckReasoning = (difficultyCheck as any).reason ?? '';
+
           console.warn(
             `[ExGen] Exercise "${result.title}" FAILED difficulty check:`,
-            difficultyCheck.error,
+            diffCheckError,
+            `Reason: ${diffCheckReasoning}`,
             `Problem stmt: ${result.problem_statement.substring(0, 5000)}`
+          );
+
+          appendToCSV(
+            csvPath, sessionId, usedModel, config, fewShotExamples,
+            exerciseNo, result.title, result.problem_statement,
+            unitTestStatus, unitTestError, unitTestReasoning,
+            diffCheckStatus, diffCheckError, diffCheckReasoning
           );
           continue;
         }
 
+        diffCheckStatus = 'passed';
         console.log(`[ExGen] Exercise "${result.title}" PASSED difficulty check.`);
       }
 
-      // ── Exercise lolos filter (atau filter tidak diaktifkan) ──────────────
+      // ── Exercise lolos semua filter ───────────────────────────────────────
+      appendToCSV(
+        csvPath, sessionId, usedModel, config, fewShotExamples,
+        exerciseNo, result.title, result.problem_statement,
+        unitTestStatus || 'passed', '', '',
+        diffCheckStatus || 'passed', '', ''
+      );
+
       const exercise: Omit<GeneratedExercise, 'id'> = {
         title:             result.title,
         topic:             config.topic,
@@ -169,7 +203,6 @@ export async function exerciseGeneratorCommand(
       passed++;
     }
 
-    // Beri tahu user ringkasan hasil filter
     const difficultyMsg = applyDifficultyCheck ? ' difficulty check,' : '';
     if ((applyTestcaseCheck || applyDifficultyCheck) && skipped > 0) {
       vscode.window.showInformationMessage(
@@ -189,10 +222,71 @@ export async function exerciseGeneratorCommand(
     const message = err instanceof Error ? err.message : String(err);
     vscode.window.showErrorMessage(`Failed to generate exercise: ${message}`);
   } finally {
-    // Selalu hilangkan status bar message setelah selesai
     statusBar.dispose();
   }
 }
+
+// ── CSV Export ────────────────────────────────────────────────────────────────
+
+// Jumlah kolom shot_ref selalu tetap 3 (best practice: fixed schema)
+const MAX_SHOT_COLS = 3;
+
+function appendToCSV(
+  csvPath: string,
+  sessionId: string,
+  model: string,
+  config: ExerciseConfig,
+  fewShotExamples: any[],
+  no: number,
+  title: string,
+  problemStatement: string,
+  unitTestStatus: string,
+  unitTestError: string,
+  unitTestReasoning: string,
+  diffCheckStatus: string,
+  diffCheckError: string,
+  diffCheckReasoning: string
+): void {
+  const escape = (s: string) => `"${String(s).replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+  const orNull = (s: string) => (s === undefined || s === null || s.trim() === '') ? 'NULL' : escape(s);
+
+  const header =
+    'session_id;model;topic;difficulty;shot;' +
+    'shot_ref_1;shot_ref_2;shot_ref_3;' +
+    'no;title;problem_statement;' +
+    'unit_test;unit_test_error;unit_test_reasoning;' +
+    'diff_check;diff_check_error;diff_check_reasoning\n';
+
+  const shotRefValues = Array.from({ length: MAX_SHOT_COLS }, (_, i) => {
+    const ex = fewShotExamples[i];
+    return ex ? escape(ex.problem_statement) : 'NULL';
+  });
+
+  const row = [
+    escape(sessionId),
+    escape(model),
+    escape(config.topic),
+    escape(config.difficulty),
+    escape(config.shot),
+    ...shotRefValues,
+    String(no),
+    escape(title),
+    escape(problemStatement),
+    orNull(unitTestStatus),
+    orNull(unitTestError),
+    orNull(unitTestReasoning),
+    orNull(diffCheckStatus),
+    orNull(diffCheckError),
+    orNull(diffCheckReasoning)
+  ].join(';') + '\n';
+
+  if (!fs.existsSync(csvPath)) {
+    fs.writeFileSync(csvPath, header, 'utf8');
+  }
+  fs.appendFileSync(csvPath, row, 'utf8');
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type LLMExercise = {
   title: string;
@@ -212,28 +306,13 @@ type OpenRouterResponse = {
   choices?: Array<{ message?: { content?: string } }>;
 };
 
-/**
- * Build the prompt messages
- *
- * SYSTEM MESSAGE
- * - Defines the assistant role and explains all difficulty levels.
- *
- * ZERO-SHOT (0 examples)
- * - Uses only the system message and a single user request for N exercises.
- *
- * FEW-SHOT (1–3 examples)
- * - Injects examples as alternating user/assistant turns:
- *   user:      "Give me a {difficulty} Python exercise."
- *   assistant: "Here is one {difficulty} Python exercise: {example}"
- * - Ends with a final user request for N new exercises using the keyword.
- */
+// ── Prompt Builder ────────────────────────────────────────────────────────────
+
 function buildMessages(
   config: ExerciseConfig,
   fewShotExamples: any[],
   difficultyLabel: string
 ): ChatMessage[] {
-  // Message 1: system message.
-  // Defines the role and difficulty tiers to establish shared context.
   const systemMessage: ChatMessage = {
     role: 'system',
     content:
@@ -257,10 +336,6 @@ function buildMessages(
 
   const messages: ChatMessage[] = [systemMessage];
 
-  // Few-shot turns: alternating user/assistant messages.
-  //   user:      "Give me a {difficulty} Python exercise."
-  //   assistant: "Here is one {difficulty} Python exercise: {exercise JSON}"
-  // Each example is one user+assistant pair to reinforce format and difficulty.
   for (const ex of fewShotExamples) {
     messages.push({
       role: 'user',
@@ -282,16 +357,15 @@ function buildMessages(
     });
   }
 
-  // Final message: user request with the keyword.
   const isZeroShot = fewShotExamples.length === 0;
 
   const finalUserContent = isZeroShot
-    ? `Give me 3 ${difficultyLabel} Python exercises using this keyword: ` +
+    ? `Give me 5 ${difficultyLabel} Python exercises using this keyword: ` +
       `${config.topic}. ` +
       `Return a JSON array where each element has fields: title, ` +
       `problem_statement, example, function_stub, test_cases, solution. ` +
       `Return JSON only.`
-    : `Good. I want 3 more ${difficultyLabel} Python exercises using this ` +
+    : `Good. I want 5 more ${difficultyLabel} Python exercises using this ` +
       `keyword: ${config.topic}. ` +
       `Print the result with the same format as the previous ones. ` +
       `Return a JSON array only.`;
@@ -304,11 +378,13 @@ function buildMessages(
   return messages;
 }
 
+// ── LLM Call ──────────────────────────────────────────────────────────────────
+
 async function callLLM(
   config: ExerciseConfig,
   fewShotExamples: any[],
   extensionPath: string
-): Promise<LLMExercise[]> {
+): Promise<{ exercises: LLMExercise[]; model: string }> {
   loadEnvFromFile(extensionPath);
 
   const useOllama = process.env.USE_OLLAMA === 'true';
@@ -332,11 +408,12 @@ async function callLLM(
   console.log('[ExGen] Prompting strategy:', fewShotExamples.length === 0 ? 'zero-shot' : `${fewShotExamples.length}-shot`);
   console.log('[ExGen] Total messages in prompt:', messages.length);
   console.log('[ExGen] Using:', useOllama ? 'Ollama (localhost)' : 'OpenRouter');
+  console.log('[ExGen] Model:', model);
 
   const payload = JSON.stringify({
     model,
     temperature: 0.7,
-    max_tokens: 4095,
+    max_tokens: 8000,
     messages
   });
 
@@ -374,8 +451,11 @@ async function callLLM(
   for (const exercise of exercises) {
     validateLLMExercise(exercise);
   }
-  return exercises;
+
+  return { exercises, model };
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function loadEnvFromFile(extensionPath: string): void {
   if (process.env.OPENROUTER_API_KEY || process.env.USE_OLLAMA === 'true') {

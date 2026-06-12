@@ -156,7 +156,10 @@ def check_difficulty(payload: dict) -> dict:
                 "intermediate: This is for intermediate problems. Most students will take more time to solve the problem, "
                 "and they need to write more code. Many students, but not all, will be able to solve the problem in the end.\n"
                 "hard: This is for hard problems. Most students will take a lot of time to solve the problem. "
-                "Many of them will not be able to solve the problem in the end."
+                "Many of them will not be able to solve the problem in the end.\n\n"
+                "Respond in this exact format:\n"        
+                "Difficulty: <easy/intermediate/hard>\n"  
+                "Reason: <explain why>"
             )
         }
     ]
@@ -181,7 +184,11 @@ def check_difficulty(payload: dict) -> dict:
     )
     messages.append({
         "role": "user",
-        "content": f"I want you to classify this exercise: {candidate_summary}"
+        "content": f"I want you to classify this exercise: {candidate_summary}. "
+               f"Respond in this format:\n"
+               f"Difficulty: <easy/intermediate/hard>\n"
+               f"Reason: <explain why>"
+
     })
 
     # ── API call ──────────────────────────────────────────────────────────────
@@ -209,10 +216,24 @@ def check_difficulty(payload: dict) -> dict:
             print(json.dumps({"debug_llm_response": content}), file=sys.stderr)
 
             predicted_label = None
+            reason = None
+
+            # Coba cari format "Difficulty: easy"
             for line in content.splitlines():
                 if line.lower().startswith("difficulty:"):
-                    predicted_label = line.split(":", 1)[-1].strip()
-                    break
+                    predicted_label = line.split(":", 1)[-1].strip().lower()
+                elif line.lower().startswith("reason:"):
+                    reason = line.split(":", 1)[-1].strip()
+
+            # Fallback: cari keyword easy/intermediate/hard di dalam response
+            if predicted_label is None:
+                content_lower = content.lower()
+                if "intermediate" in content_lower:
+                    predicted_label = "intermediate"
+                elif "easy" in content_lower:
+                    predicted_label = "easy"
+                elif "hard" in content_lower:
+                    predicted_label = "hard"
 
             matches = predicted_label == expected_label
             result = {
@@ -220,12 +241,14 @@ def check_difficulty(payload: dict) -> dict:
                 "error": None if matches else (
                     f"Classification mismatch: expected '{expected}' (level {expected_label}), "
                     f"got '{predicted_label}'"
-                )
+                ),
+                "reason": reason
             }
     except Exception as e:
         result = {
             "passed": False,
-            "error": f"Difficulty check error: {e}"
+            "error": f"Difficulty check error: {e}",
+            "reason": None
         }
 
     print(json.dumps(result))
