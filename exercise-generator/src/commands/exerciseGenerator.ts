@@ -65,14 +65,16 @@ export async function exerciseGeneratorCommand(
 		'0-shot': 0, '1-shot': 1, '2-shot': 2, '3-shot': 3
 	};
 
+  // ── Topic-aware shot retrieval ──────────────────────────────────────────────
   const fewShotExamples = await db.getSeedsForShot(
     diffMap[config.difficulty],
-    shotCountMap[config.shot]
+    shotCountMap[config.shot],
+    config.topic  // <-- topic dikirim ke DB service
   );
 
   console.log('[ExGen] Config:', config);
-  console.log('[ExGen] Few-shot examples:', fewShotExamples.map((e, i) =>
-    `\n  [Shot ${i + 1}] ${e.title}: ${e.problem_statement}`
+  console.log('[ExGen] Few-shot examples (topic-filtered):', fewShotExamples.map((e, i) =>
+    `\n  [Shot ${i + 1}] [${e.topic ?? 'unknown'}] ${e.title}: ${e.problem_statement.substring(0, 80)}...`
   ).join(''));
 
   const applyTestcaseCheck = config.filters.includes('Testcase Check');
@@ -228,7 +230,6 @@ export async function exerciseGeneratorCommand(
 
 // ── CSV Export ────────────────────────────────────────────────────────────────
 
-// Jumlah kolom shot_ref selalu tetap 3 (best practice: fixed schema)
 const MAX_SHOT_COLS = 3;
 
 function appendToCSV(

@@ -27,8 +27,20 @@ def import_seeds(seed_json_path: str):
 
     print(json.dumps({"status": "ok", "imported": len(seeds)}))
 
-def get_seeds_for_shot(difficulty: str, shot_count: int):
-    """Get N seeds based on difficulty for few-shot examples."""
+def get_seeds_for_shot(difficulty: str, shot_count: int, topic: str = ""):
+    """
+    Get N seeds for few-shot examples.
+
+    Strategy (topic-aware):
+      1. Prioritise seeds that match both difficulty AND topic (case-insensitive).
+      2. If not enough matches, fill remaining slots with seeds matching only difficulty.
+      3. If still not enough (e.g. very rare difficulty), fall back to any topic.
+
+    Args:
+        difficulty : 'easy' | 'intermediate' | 'hard'
+        shot_count : number of examples to return (0 → empty list)
+        topic      : user-supplied topic string, e.g. "String", "List", "Loop"
+    """
     if shot_count == 0:
         print(json.dumps([]))
         return
@@ -36,16 +48,56 @@ def get_seeds_for_shot(difficulty: str, shot_count: int):
     db = get_db()
     Exercise = Query()
 
-    results = db.search(Exercise.difficulty == difficulty.lower())
+    # ── Pool 1: same difficulty + same topic ─────────────────────────────────
+    topic_lower = topic.strip().lower()
+    if topic_lower:
+        pool_topic = db.search(
+            (Exercise.difficulty == difficulty.lower()) &
+            (Exercise.topic.test(lambda t: str(t).lower() == topic_lower))
+        )
+    else:
+        pool_topic = []
 
-    if not results:
-        print(json.dumps([]))
-        return
+    # ── Pool 2: same difficulty, any topic ───────────────────────────────────
+    pool_difficulty = db.search(Exercise.difficulty == difficulty.lower())
 
-    random.shuffle(results)
-    selected = results[:shot_count]
+    # Exclude already-selected ids to avoid duplicates later
+    selected_ids = set()
+    selected = []
 
-    print(json.dumps(selected))
+    # Fill from topic-matching pool first
+    random.shuffle(pool_topic)
+    for ex in pool_topic:
+        if len(selected) >= shot_count:
+            break
+        ex_id = ex.get('id')
+        if ex_id not in selected_ids:
+            selected.append(ex)
+            selected_ids.add(ex_id)
+
+    # Fill remaining from difficulty pool (different topic)
+    random.shuffle(pool_difficulty)
+    for ex in pool_difficulty:
+        if len(selected) >= shot_count:
+            break
+        ex_id = ex.get('id')
+        if ex_id not in selected_ids:
+            selected.append(ex)
+            selected_ids.add(ex_id)
+
+    # ── Fallback: any exercise in DB ─────────────────────────────────────────
+    if len(selected) < shot_count:
+        all_ex = db.all()
+        random.shuffle(all_ex)
+        for ex in all_ex:
+            if len(selected) >= shot_count:
+                break
+            ex_id = ex.get('id')
+            if ex_id not in selected_ids:
+                selected.append(ex)
+                selected_ids.add(ex_id)
+
+    print(json.dumps(selected[:shot_count]))
 
 def get_all_exercises():
     """Get all exercises from the database, sorted by difficulty."""
@@ -69,7 +121,7 @@ def run_filters(payload: dict) -> dict:
       }
     """
     solution   = payload.get("solution", "")
-    test_cases = payload.get("test_cases", [])   # list of assert strings
+    test_cases = payload.get("test_cases", [])
 
     result = {
         "passed": False,
@@ -78,19 +130,16 @@ def run_filters(payload: dict) -> dict:
     }
 
     # ── Filter 1: Compilation Check ──────────────────────────────────────────
-    # memeriksa syntax solution dengan ast.parse + compile. Jika error, catat pesan error dan stop.
     try:
         tree = ast.parse(solution)
         compile(tree, "<exercise>", "exec")
         result["compilation"]["passed"] = True
     except SyntaxError as e:
         result["compilation"]["error"] = f"SyntaxError: {e}"
-        # Gagal di compilation → stop, tidak perlu lanjut ke unit test
         print(json.dumps(result))
         return result
 
     # ── Filter 2: Unit Testing Check ─────────────────────────────────────────
-    # Jalankan solution lalu eksekusi setiap assert string.
     result["unit_test"] = {"passed": False, "error": None}
 
     if not test_cases:
@@ -145,7 +194,6 @@ def check_difficulty(payload: dict) -> dict:
     }
     expected_label = difficulty_map.get(expected, "intermediate")
 
-    # ── Build multi-turn messages ─────────────────────────────────────────────
     messages = [
         {
             "role": "system",
@@ -157,8 +205,8 @@ def check_difficulty(payload: dict) -> dict:
                 "and they need to write more code. Many students, but not all, will be able to solve the problem in the end.\n"
                 "hard: This is for hard problems. Most students will take a lot of time to solve the problem. "
                 "Many of them will not be able to solve the problem in the end.\n\n"
-                "Respond in this exact format:\n"        
-                "Difficulty: <easy/intermediate/hard>\n"  
+                "Respond in this exact format:\n"
+                "Difficulty: <easy/intermediate/hard>\n"
                 "Reason: <explain why>"
             )
         }
@@ -188,10 +236,8 @@ def check_difficulty(payload: dict) -> dict:
                f"Respond in this format:\n"
                f"Difficulty: <easy/intermediate/hard>\n"
                f"Reason: <explain why>"
-
     })
 
-    # ── API call ──────────────────────────────────────────────────────────────
     use_ollama = os.environ.get("USE_OLLAMA") == "true"
     api_key = os.environ.get("OPENROUTER_API_KEY", "")
     model = os.environ.get("OPENROUTER_MODEL", "llama3.2" if use_ollama else "nvidia/nemotron-3-super-120b-a12b:free")
@@ -218,14 +264,12 @@ def check_difficulty(payload: dict) -> dict:
             predicted_label = None
             reason = None
 
-            # Coba cari format "Difficulty: easy"
             for line in content.splitlines():
                 if line.lower().startswith("difficulty:"):
                     predicted_label = line.split(":", 1)[-1].strip().lower()
                 elif line.lower().startswith("reason:"):
                     reason = line.split(":", 1)[-1].strip()
 
-            # Fallback: cari keyword easy/intermediate/hard di dalam response
             if predicted_label is None:
                 content_lower = content.lower()
                 if "intermediate" in content_lower:
@@ -269,12 +313,14 @@ def main():
         import_seeds(sys.argv[2])
 
     elif command == 'get_seeds':
+        # Args: get_seeds <difficulty> <shot_count> [topic]
         if len(sys.argv) < 4:
             print(json.dumps({"error": "Missing difficulty or shot_count"}))
             sys.exit(1)
-        difficulty = sys.argv[2]
-        shot_count = int(sys.argv[3])
-        get_seeds_for_shot(difficulty, shot_count)
+        difficulty  = sys.argv[2]
+        shot_count  = int(sys.argv[3])
+        topic       = sys.argv[4] if len(sys.argv) >= 5 else ""
+        get_seeds_for_shot(difficulty, shot_count, topic)
 
     elif command == 'get_all':
         get_all_exercises()
@@ -296,7 +342,7 @@ def main():
 
         for t in existing_topics:
             if t.lower() == raw_topic.lower():
-                matched_topic = t 
+                matched_topic = t
                 break
 
         if matched_topic == raw_topic and raw_topic:

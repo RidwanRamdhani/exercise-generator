@@ -11,7 +11,7 @@ export interface SeedExercise {
   problem_statement: string;
   example: string;
   solution: string;
-  function_stub?: string;  
+  function_stub?: string;
   test_cases: string[];
 }
 
@@ -23,7 +23,7 @@ export interface GeneratedExerciseRecord {
   example: string;
   function_stub: string;
   test_cases: string[];
-  solution: string;           
+  solution: string;
   shot?: string;
   filters_applied?: string[];
 }
@@ -35,14 +35,6 @@ export interface CheckResult {
   error: string | null;
 }
 
-/**
- * Hasil dari run_filters (chain: Compilation → Unit Testing → Difficulty).
- *
- * - compilation   : selalu ada
- * - unit_test     : null jika compilation gagal (tidak dijalankan)
- * - difficulty    : null jika unit_test gagal (tidak dijalankan)
- * - passed        : true hanya jika semua filter lolos
- */
 export interface FilterResult {
   passed: boolean;
   compilation: CheckResult;
@@ -114,13 +106,27 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Ambil seed exercises untuk few-shot examples.
+   *
+   * Prioritas retrieval:
+   *   1. Soal dengan difficulty + topic yang cocok (topic-aware)
+   *   2. Soal dengan difficulty yang sama (topic berbeda) — sebagai pelengkap
+   *   3. Fallback: soal apapun jika pool atas tidak cukup
+   *
+   * @param difficulty - level kesulitan ('easy' | 'intermediate' | 'hard')
+   * @param shotCount  - jumlah contoh yang diambil (0 → array kosong)
+   * @param topic      - topik dari input user (misal "String", "List", "Loop")
+   */
   async getSeedsForShot(
     difficulty: 'easy' | 'intermediate' | 'hard',
-    shotCount: number
+    shotCount: number,
+    topic: string = ''
   ): Promise<SeedExercise[]> {
     if (shotCount === 0) { return []; }
     try {
-      const result = await this._run(['get_seeds', difficulty, String(shotCount)]);
+      // Pass topic sebagai argumen ke-4 ke Python script
+      const result = await this._run(['get_seeds', difficulty, String(shotCount), topic]);
       return result as SeedExercise[];
     } catch (err) {
       console.error('[ExGen DB] getSeedsForShot failed:', err);
@@ -140,9 +146,6 @@ export class DatabaseService {
     }
   }
 
-  /**
-   * Menyimpan exercise hasil generate LLM ke tabel terpisah di database.
-   */
   async saveGeneratedExercise(exercise: GeneratedExerciseRecord): Promise<{ ok: boolean; id?: number }> {
     try {
       const diffMap: Record<string, string> = {
@@ -165,49 +168,38 @@ export class DatabaseService {
     }
   }
 
-/**
-    * Jalankan filter chain (Compilation Check → Unit Testing Check) via Python.
-    * Sesuai paper ExGen Fig. 6.
-    *
-    * Mengembalikan FilterResult yang berisi detail tiap tahap.
-    * Jika terjadi error tak terduga (Python crash, dsb.), dianggap gagal.
-    */
-   async runFilters(payload: FilterPayload): Promise<FilterResult> {
-     const fallback: FilterResult = {
-       passed: false,
-       compilation: { passed: false, error: 'Filter runner failed unexpectedly' },
-       unit_test: null
-     };
+  async runFilters(payload: FilterPayload): Promise<FilterResult> {
+    const fallback: FilterResult = {
+      passed: false,
+      compilation: { passed: false, error: 'Filter runner failed unexpectedly' },
+      unit_test: null
+    };
 
-     try {
-       const result = await this._run(['run_filters', JSON.stringify(payload)]);
-       return result as FilterResult;
-     } catch (err) {
-       console.error('[ExGen DB] runFilters failed:', err);
-       return fallback;
-     }
-   }
+    try {
+      const result = await this._run(['run_filters', JSON.stringify(payload)]);
+      return result as FilterResult;
+    } catch (err) {
+      console.error('[ExGen DB] runFilters failed:', err);
+      return fallback;
+    }
+  }
 
-   /**
-    * Jalankan difficulty check via LLM self-reflection.
-    * Meminta LLM untuk memverifikasi apakah exercise sesuai difficulty yang diminta.
-    */
-   async checkDifficulty(
-     exercise: GeneratedExerciseRecord,
-     expectedDifficulty: 'Easy' | 'Medium' | 'Hard'
-   ): Promise<CheckResult> {
-     try {
-       const result = await this._run([
-         'check_difficulty',
-         JSON.stringify({
-           exercise,
-           expectedDifficulty
-         })
-       ]);
-       return result as CheckResult;
-     } catch (err) {
-       console.error('[ExGen DB] checkDifficulty failed:', err);
-       return { passed: false, error: 'Difficulty check failed unexpectedly' };
-     }
-   }
- }
+  async checkDifficulty(
+    exercise: GeneratedExerciseRecord,
+    expectedDifficulty: 'Easy' | 'Medium' | 'Hard'
+  ): Promise<CheckResult> {
+    try {
+      const result = await this._run([
+        'check_difficulty',
+        JSON.stringify({
+          exercise,
+          expectedDifficulty
+        })
+      ]);
+      return result as CheckResult;
+    } catch (err) {
+      console.error('[ExGen DB] checkDifficulty failed:', err);
+      return { passed: false, error: 'Difficulty check failed unexpectedly' };
+    }
+  }
+}
