@@ -408,6 +408,276 @@
         "assert '20' in cek_panjang()",
         "assert isinstance(cek_panjang(), str)"
       ]
+    },
+    {
+      "id": 28,
+      "title": "Triangle Area",
+      "difficulty": "easy",
+      "topic": "Expressions",
+      "problem_statement": "Create two variables: alas = 10 and tinggi = 15. Write a function hitung_luas() that calculates the area of a triangle using the arithmetic expression 0.5 * alas * tinggi and returns the result.",
+      "example": "Input  : hitung_luas()\nOutput : 75.0",
+      "solution": "def hitung_luas():\n    alas = 10\n    tinggi = 15\n    luas = 0.5 * alas * tinggi\n    return luas",
+      "function_stub": "def hitung_luas():\n    pass",
+      "test_cases": [
+        "assert hitung_luas() == 75.0",
+        "assert isinstance(hitung_luas(), float)",
+        "assert hitung_luas() > 0"
+      ]
+    },
+    {
+      "id": 29,
+      "title": "Even Number Check",
+      "difficulty": "easy",
+      "topic": "Expressions",
+      "problem_statement": "Create a variable angka = 42. Write a function cek_genap() that evaluates the boolean expression angka % 2 == 0 and returns the result.",
+      "example": "Input  : cek_genap()\nOutput : True",
+      "solution": "def cek_genap():\n    angka = 42\n    return angka % 2 == 0",
+      "function_stub": "def cek_genap():\n    pass",
+      "test_cases": [
+        "assert cek_genap() is True",
+        "assert isinstance(cek_genap(), bool)",
+        "assert cek_genap() == True"
+      ]
+    },
+    {
+      "id": 30,
+      "title": "String Expression",
+      "difficulty": "easy",
+      "topic": "Expressions",
+      "problem_statement": "Given the string 'Waku ', write a function buat_sorakan() that repeats the string twice and concatenates it with 'Yay!'. Return the resulting string.",
+      "example": "Input  : buat_sorakan()\nOutput : Waku Waku Yay!",
+      "solution": "def buat_sorakan():\n    kata = 'Waku '\n    sorakan = (kata * 2) + 'Yay!'\n    return sorakan",
+      "function_stub": "def buat_sorakan():\n    pass",
+      "test_cases": [
+        "assert buat_sorakan() == 'Waku Waku Yay!'",
+        "assert buat_sorakan().startswith('Waku')",
+        "assert buat_sorakan().endswith('Yay!')"
+      ]
+    },
+    {
+      "id": 31,
+      "title": "Ternary Expression",
+      "difficulty": "intermediate",
+      "topic": "Expressions",
+      "problem_statement": "Create a variable nilai = 75. Write a function cek_kelulusan() that uses a ternary conditional expression to return 'Lulus' if nilai is greater than or equal to 70, otherwise return 'Gagal'.",
+      "example": "Input  : cek_kelulusan()\nOutput : Lulus",
+      "solution": "def cek_kelulusan():\n    nilai = 75\n    status = 'Lulus' if nilai >= 70 else 'Gagal'\n    return status",
+      "function_stub": "def cek_kelulusan():\n    pass",
+      "test_cases": [
+        "assert cek_kelulusan() == 'Lulus'",
+        "assert isinstance(cek_kelulusan(), str)",
+        "assert cek_kelulusan() != 'Gagal'"
+      ]
+    },
+    {
+      "id": 32,
+      "title": "List Comprehension",
+      "difficulty": "intermediate",
+      "topic": "Expressions",
+      "problem_statement": "Given the list angka = [1, 2, 3, 4, 5], use a list comprehension to create a new list containing only the squares of the even numbers. Write a function kuadrat_genap() that returns the new list.",
+      "example": "Input  : kuadrat_genap()\nOutput : [4, 16]",
+      "solution": "def kuadrat_genap():\n    angka = [1, 2, 3, 4, 5]\n    return [x ** 2 for x in angka if x % 2 == 0]",
+      "function_stub": "def kuadrat_genap():\n    pass",
+      "test_cases": [
+        "assert kuadrat_genap() == [4, 16]",
+        "assert len(kuadrat_genap()) == 2",
+        "assert all(x % 4 == 0 for x in kuadrat_genap())"
+      ]
+    },
+    {
+      "id": 33,
+      "title": "Lambda Expression",
+      "difficulty": "intermediate",
+      "topic": "Expressions",
+      "problem_statement": "Create a lambda expression that multiplies two numbers and stores it in a variable named kali. Write a function hasil_perkalian() that uses the lambda expression to multiply 7 and 8, then returns the result.",
+      "example": "Input  : hasil_perkalian()\nOutput : 56",
+      "solution": "def hasil_perkalian():\n    kali = lambda a, b: a * b\n    return kali(7, 8)",
+      "function_stub": "def hasil_perkalian():\n    pass",
+      "test_cases": [
+        "assert hasil_perkalian() == 56",
+        "assert isinstance(hasil_perkalian(), int)",
+        "assert hasil_perkalian() > 50"
+      ]
+    },
+    {
+      "id": 34,
+      "title": "Safe Literal Evaluation",
+      "difficulty": "hard",
+      "topic": "Expressions",
+      "problem_statement": "Given the string ekspresi_str = '{\"a\": 1, \"b\": 2}', use ast.literal_eval() to safely evaluate the string into a Python dictionary. Write a function evaluasi_literal() that returns the resulting dictionary.",
+      "example": "Input  : evaluasi_literal()\nOutput : {'a': 1, 'b': 2}",
+      "solution": "import ast\n\ndef evaluasi_literal():\n    ekspresi_str = '{\"a\": 1, \"b\": 2}'\n    return ast.literal_eval(ekspresi_str)",
+      "function_stub": "import ast\n\ndef evaluasi_literal():\n    pass",
+      "test_cases": [
+        "assert evaluasi_literal() == {'a': 1, 'b': 2}",
+        "assert isinstance(evaluasi_literal(), dict)",
+        "assert evaluasi_literal()['b'] == 2"
+      ]
+    },
+    {
+      "id": 35,
+      "title": "Generator Expression",
+      "difficulty": "hard",
+      "topic": "Expressions",
+      "problem_statement": "Create a generator expression that generates the squares of numbers from 1 to 1,000,000. Write a function tiga_pertama() that returns the first three generated values as a tuple using next().",
+      "example": "Input  : tiga_pertama()\nOutput : (1, 4, 9)",
+      "solution": "def tiga_pertama():\n    generator_kuadrat = (x ** 2 for x in range(1, 1000001))\n    return (next(generator_kuadrat), next(generator_kuadrat), next(generator_kuadrat))",
+      "function_stub": "def tiga_pertama():\n    pass",
+      "test_cases": [
+        "assert tiga_pertama() == (1, 4, 9)",
+        "assert isinstance(tiga_pertama(), tuple)",
+        "assert len(tiga_pertama()) == 3"
+      ]
+    },
+    {
+      "id": 36,
+      "title": "Nested Walrus Expression",
+      "difficulty": "hard",
+      "topic": "Expressions",
+      "problem_statement": "Create a function get_data() that returns the list [10, 20, 30]. Write another function cek_total() that uses nested walrus operators (:=) to assign the result of get_data() to a variable, calculate its sum, and return the string 'Data valid: [10, 20, 30]. Total besar: 60' if the total is greater than 50. Otherwise, return 'Total di bawah 50.'.",
+      "example": "Input  : cek_total()\nOutput : Data valid: [10, 20, 30]. Total besar: 60",
+      "solution": "def get_data():\n    return [10, 20, 30]\n\ndef cek_total():\n    if (total := sum(data := get_data())) > 50:\n        return f'Data valid: {data}. Total besar: {total}'\n    return 'Total di bawah 50.'",
+      "function_stub": "def get_data():\n    return [10, 20, 30]\n\ndef cek_total():\n    pass",
+      "test_cases": [
+        "assert cek_total() == 'Data valid: [10, 20, 30]. Total besar: 60'",
+        "assert '60' in cek_total()",
+        "assert cek_total().startswith('Data valid')"
+      ]
+    },
+    {
+      "id": 37,
+      "title": "Calculate Age",
+      "difficulty": "easy",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function hitung_umur(tahun_lahir) that receives a birth year as an integer and returns the estimated age in the year 2024.",
+      "example": "Input  : hitung_umur(2004)\nOutput : 20",
+      "solution": "def hitung_umur(tahun_lahir):\n    return 2024 - tahun_lahir",
+      "function_stub": "def hitung_umur(tahun_lahir):\n    pass",
+      "test_cases": [
+        "assert hitung_umur(2004) == 20",
+        "assert hitung_umur(1999) == 25",
+        "assert hitung_umur(2024) == 0"
+      ]
+    },
+    {
+      "id": 38,
+      "title": "Format Currency",
+      "difficulty": "easy",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function format_harga(harga) that formats a number as Indonesian Rupiah using commas as thousands separators and two decimal places. For example, 12500000 should become 'Rp 12,500,000.00'.",
+      "example": "Input  : format_harga(12500000)\nOutput : Rp 12,500,000.00",
+      "solution": "def format_harga(harga):\n    return f'Rp {harga:,.2f}'",
+      "function_stub": "def format_harga(harga):\n    pass",
+      "test_cases": [
+        "assert format_harga(12500000) == 'Rp 12,500,000.00'",
+        "assert format_harga(1000) == 'Rp 1,000.00'",
+        "assert format_harga(50) == 'Rp 50.00'"
+      ]
+    },
+    {
+      "id": 39,
+      "title": "Sum Two Numbers",
+      "difficulty": "easy",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function jumlah_dua_angka(data_input) that receives a string containing two integers separated by a space (for example, '10 20'). Split the string and return the sum of the two numbers.",
+      "example": "Input  : jumlah_dua_angka('10 20')\nOutput : 30",
+      "solution": "def jumlah_dua_angka(data_input):\n    a, b = data_input.split()\n    return int(a) + int(b)",
+      "function_stub": "def jumlah_dua_angka(data_input):\n    pass",
+      "test_cases": [
+        "assert jumlah_dua_angka('10 20') == 30",
+        "assert jumlah_dua_angka('5 7') == 12",
+        "assert jumlah_dua_angka('100 200') == 300"
+      ]
+    },
+    {
+      "id": 40,
+      "title": "Write to a File",
+      "difficulty": "intermediate",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function tulis_catatan(filename) that creates or overwrites a text file using a context manager. The function should write two lines: 'Baris Pertama' and 'Baris Kedua'. Return True after successfully writing the file.",
+      "example": "Input  : tulis_catatan('catatan.txt')\nOutput : True",
+      "solution": "def tulis_catatan(filename):\n    with open(filename, 'w', encoding='utf-8') as file:\n        file.write('Baris Pertama\\n')\n        file.write('Baris Kedua\\n')\n    return True",
+      "function_stub": "def tulis_catatan(filename):\n    pass",
+      "test_cases": [
+        "assert tulis_catatan('catatan.txt') is True",
+        "assert tulis_catatan('temp.txt') == True",
+        "assert isinstance(tulis_catatan('log.txt'), bool)"
+      ]
+    },
+    {
+      "id": 41,
+      "title": "Read a File",
+      "difficulty": "intermediate",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function baca_catatan(filename) that opens a text file using a context manager, reads each line, removes trailing newline characters, and returns the lines as a list of strings.",
+      "example": "Input  : baca_catatan('catatan.txt')\nOutput : ['Baris Pertama', 'Baris Kedua']",
+      "solution": "def baca_catatan(filename):\n    with open(filename, 'r', encoding='utf-8') as file:\n        return [baris.strip() for baris in file]",
+      "function_stub": "def baca_catatan(filename):\n    pass",
+      "test_cases": [
+        "with open('catatan.txt', 'w', encoding='utf-8') as f: f.write('Baris Pertama\nBaris Kedua\n')\nassert baca_catatan('catatan.txt') == ['Baris Pertama', 'Baris Kedua']",
+        "with open('temp.txt', 'w', encoding='utf-8') as f: f.write('Halo\nPython\n')\nassert baca_catatan('temp.txt') == ['Halo', 'Python']",
+        "with open('kosong.txt', 'w', encoding='utf-8') as f: pass\nassert baca_catatan('kosong.txt') == []"
+      ]
+    },
+    {
+      "id": 42,
+      "title": "Join with Separator",
+      "difficulty": "intermediate",
+      "topic": "Input/Output",
+      "problem_statement": "Given a list of strings, write a function gabung_data(data) that returns a single string where every element is separated by ' | ' and ends with a period. For example, ['Apel', 'Jeruk', 'Mangga'] should become 'Apel | Jeruk | Mangga.'.",
+      "example": "Input  : gabung_data(['Apel', 'Jeruk', 'Mangga'])\nOutput : Apel | Jeruk | Mangga.",
+      "solution": "def gabung_data(data):\n    return ' | '.join(data) + '.'",
+      "function_stub": "def gabung_data(data):\n    pass",
+      "test_cases": [
+        "assert gabung_data(['Apel', 'Jeruk', 'Mangga']) == 'Apel | Jeruk | Mangga.'",
+        "assert gabung_data(['A']) == 'A.'",
+        "assert gabung_data(['Python', 'Java']) == 'Python | Java.'"
+      ]
+    },
+    {
+      "id": 43,
+      "title": "Print to Standard Error",
+      "difficulty": "hard",
+      "topic": "Input/Output",
+      "problem_statement": "Import the sys module. Write a function print_error(message) that prints the given message to the standard error stream (sys.stderr) with the prefix '[ERROR]: '. The function should return None.",
+      "example": "Input  : print_error('Access denied')\nOutput : [ERROR]: Access denied (printed to stderr)",
+      "solution": "import sys\n\ndef print_error(message):\n    print(f'[ERROR]: {message}', file=sys.stderr)",
+      "function_stub": "import sys\n\ndef print_error(message):\n    pass",
+      "test_cases": [
+        "assert print_error('Access denied') is None",
+        "assert print_error('Database error') is None",
+        "assert print_error('Invalid input') is None"
+      ]
+    },
+    {
+      "id": 44,
+      "title": "Parse CSV String",
+      "difficulty": "hard",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function parse_csv(raw_csv) that parses a multiline CSV string into a list of dictionaries. Ignore empty lines. The first line contains the headers.",
+      "example": "Input  : 'ID,Nama,Nilai\\n1,Budi,80\\n2,Andi,95'\nOutput : [{'ID': '1', 'Nama': 'Budi', 'Nilai': '80'}, {'ID': '2', 'Nama': 'Andi', 'Nilai': '95'}]",
+      "solution": "def parse_csv(raw_csv):\n    lines = [line for line in raw_csv.strip().splitlines() if line.strip()]\n    headers = lines[0].split(',')\n    hasil = []\n    for line in lines[1:]:\n        values = line.split(',')\n        hasil.append(dict(zip(headers, values)))\n    return hasil",
+      "function_stub": "def parse_csv(raw_csv):\n    pass",
+      "test_cases": [
+        "assert parse_csv('ID,Nama\n1,Budi') == [{'ID': '1', 'Nama': 'Budi'}]",
+        "assert parse_csv('A,B\n10,20\n30,40') == [{'A': '10', 'B': '20'}, {'A': '30', 'B': '40'}]",
+        "assert parse_csv('X,Y\n') == []"
+      ]
+    },
+    {
+      "id": 45,
+      "title": "Binary File I/O",
+      "difficulty": "hard",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function binary_io(filename) that writes the bytes b'\\x48\\x65\\x6c\\x6c\\x6f' to a binary file, reads the file back, decodes the bytes using UTF-8, and returns the decoded string.",
+      "example": "Input  : binary_io('data.bin')\nOutput : Hello",
+      "solution": "def binary_io(filename):\n    data_byte = b'\\x48\\x65\\x6c\\x6c\\x6f'\n    with open(filename, 'wb') as f:\n        f.write(data_byte)\n    with open(filename, 'rb') as f:\n        return f.read().decode('utf-8')",
+      "function_stub": "def binary_io(filename):\n    pass",
+      "test_cases": [
+        "assert binary_io('data.bin') == 'Hello'",
+        "assert binary_io('temp.bin') == 'Hello'",
+        "assert isinstance(binary_io('sample.bin'), str)"
+      ]
     }
   ]
 }
