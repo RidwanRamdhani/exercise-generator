@@ -678,6 +678,289 @@
         "assert binary_io('temp.bin') == 'Hello'",
         "assert isinstance(binary_io('sample.bin'), str)"
       ]
+    },
+    {
+      "id": 46,
+      "title": "Traffic Jam Check",
+      "difficulty": "easy",
+      "topic": "Conditionals",
+      "problem_statement": "Given a rainfall level string ('tinggi' or 'rendah'), determine the traffic condition. If rainfall is 'tinggi', return 'macet'. Otherwise, return 'tidak macet'.",
+      "example": "Input  : curah_hujan = 'tinggi'\nOutput : 'macet'\n\nInput  : curah_hujan = 'rendah'\nOutput : 'tidak macet'",
+      "solution": "def traffic_check(curah_hujan):\n    if curah_hujan == 'tinggi':\n        return 'macet'\n    else:\n        return 'tidak macet'",
+      "function_stub": "def traffic_check(curah_hujan):\n    pass",
+      "test_cases": [
+        "assert traffic_check('tinggi') == 'macet'",
+        "assert traffic_check('rendah') == 'tidak macet'",
+        "assert traffic_check('tinggi') != 'tidak macet'",
+        "assert traffic_check('rendah') != 'macet'"
+      ]
+    },
+    {
+      "id": 47,
+      "title": "Geometric Sequence Check",
+      "difficulty": "easy",
+      "topic": "Conditionals",
+      "problem_statement": "Given three integers u1, u2, u3 in increasing order, determine whether they form a geometric sequence. A geometric sequence satisfies u2/u1 == u3/u2 (using integer division). Return 'ya' if it is geometric, 'tidak' otherwise.",
+      "example": "Input  : u1 = 2, u2 = 4, u3 = 8\nOutput : 'ya'\n\nInput  : u1 = 1, u2 = 2, u3 = 4\nOutput : 'ya'",
+      "solution": "def geometric_check(u1, u2, u3):\n    if u2 // u1 == u3 // u2:\n        return 'ya'\n    else:\n        return 'tidak'",
+      "function_stub": "def geometric_check(u1, u2, u3):\n    pass",
+      "test_cases": [
+        "assert geometric_check(2, 4, 8) == 'ya'",
+        "assert geometric_check(1, 2, 4) == 'ya'",
+        "assert geometric_check(1, 2, 5) == 'tidak'",
+        "assert geometric_check(3, 9, 27) == 'ya'"
+      ]
+    },
+    {
+      "id": 48,
+      "title": "Grade Description",
+      "difficulty": "easy",
+      "topic": "Conditionals",
+      "problem_statement": "Given a letter grade (A, B, C, D, E, or T), return its numeric description. A=5, B=4, C=3, D=2, E=1, T=0.",
+      "example": "Input  : grade = 'A'\nOutput : 5\n\nInput  : grade = 'C'\nOutput : 3",
+      "solution": "def grade_description(grade):\n    mapping = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'T': 0}\n    return mapping.get(grade, -1)",
+      "function_stub": "def grade_description(grade):\n    pass",
+      "test_cases": [
+        "assert grade_description('A') == 5",
+        "assert grade_description('C') == 3",
+        "assert grade_description('T') == 0",
+        "assert grade_description('B') == 4"
+      ]
+    },
+    {
+      "id": 49,
+      "title": "Secret Word Decoder",
+      "difficulty": "intermediate",
+      "topic": "Conditionals",
+      "problem_statement": "Given a string s of length >= 20, extract the secret message by taking characters at index 0, 4, 8, and 12. Return the 4-character secret message. If the string is shorter than 20 characters, return an empty string.",
+      "example": "Input  : s = 'abcdefghijklmnopqrstu'\nOutput : 'aeim'\n\nInput  : s = 'short'\nOutput : ''",
+      "solution": "def decode_secret(s):\n    if len(s) >= 20:\n        return s[0] + s[4] + s[8] + s[12]\n    return ''",
+      "function_stub": "def decode_secret(s):\n    pass",
+      "test_cases": [
+        "assert decode_secret('abcdefghijklmnopqrstu') == 'aeim'",
+        "assert decode_secret('short') == ''",
+        "assert len(decode_secret('abcdefghijklmnopqrstu')) == 4",
+        "assert decode_secret('12345678901234567890') == '1591'"
+      ]
+    },
+    {
+      "id": 50,
+      "title": "Quadratic Discriminant",
+      "difficulty": "intermediate",
+      "topic": "Conditionals",
+      "problem_statement": "Given coefficients a, b, c of a quadratic function f(x) = ax^2 + bx + c, determine whether the function has an intersection with the x-axis. The discriminant D = b^2 - 4ac. If D >= 0, return 'memiliki titik potong dengan sumbu-x', otherwise return 'tidak memiliki titik potong dengan sumbu-x'.",
+      "example": "Input  : a = 1.0, b = -3.0, c = 2.0\nOutput : 'memiliki titik potong dengan sumbu-x'\n\nInput  : a = 1.0, b = 0.0, c = 1.0\nOutput : 'tidak memiliki titik potong dengan sumbu-x'",
+      "solution": "def quadratic_discriminant(a, b, c):\n    d = b * b - 4 * a * c\n    if d >= 0:\n        return 'memiliki titik potong dengan sumbu-x'\n    else:\n        return 'tidak memiliki titik potong dengan sumbu-x'",
+      "function_stub": "def quadratic_discriminant(a, b, c):\n    pass",
+      "test_cases": [
+        "assert quadratic_discriminant(1.0, -3.0, 2.0) == 'memiliki titik potong dengan sumbu-x'",
+        "assert quadratic_discriminant(1.0, 0.0, 1.0) == 'tidak memiliki titik potong dengan sumbu-x'",
+        "assert quadratic_discriminant(1.0, 2.0, 1.0) == 'memiliki titik potong dengan sumbu-x'",
+        "assert quadratic_discriminant(2.0, 1.0, 3.0) == 'tidak memiliki titik potong dengan sumbu-x'"
+      ]
+    },
+    {
+      "id": 51,
+      "title": "Bus Pandemic Departure",
+      "difficulty": "intermediate",
+      "topic": "Conditionals",
+      "problem_statement": "A bus will depart only if the number of passengers is between 50% and 75% of its capacity. Given capacity and passengers as integers, return 'berangkat' if the bus departs, 'tidak berangkat' otherwise.",
+      "example": "Input  : capacity = 100, passengers = 60\nOutput : 'berangkat'\n\nInput  : capacity = 100, passengers = 80\nOutput : 'tidak berangkat'",
+      "solution": "def bus_departure(capacity, passengers):\n    ratio = passengers / capacity\n    if 0.50 <= ratio <= 0.75:\n        return 'berangkat'\n    else:\n        return 'tidak berangkat'",
+      "function_stub": "def bus_departure(capacity, passengers):\n    pass",
+      "test_cases": [
+        "assert bus_departure(100, 60) == 'berangkat'",
+        "assert bus_departure(100, 80) == 'tidak berangkat'",
+        "assert bus_departure(100, 50) == 'berangkat'",
+        "assert bus_departure(100, 30) == 'tidak berangkat'"
+      ]
+    },
+    {
+      "id": 52,
+      "title": "Pattern Matching Coordinates",
+      "difficulty": "hard",
+      "topic": "Conditionals",
+      "problem_statement": "Write a function analisis_koordinat(data) that uses Python structural pattern matching (match-case). If data is a tuple (x, y) and x == y, return 'Garis Diagonal'. If data is a tuple (0, y), return 'Berada di Sumbu Y'. If data is a dictionary with key 'tipe' == '3D' and contains keys 'x', 'y', and 'z', return 'Titik 3 Dimensi'. Otherwise return 'Data Tidak Dikenali'.",
+      "example": "Input  : analisis_koordinat((5, 5))\nOutput : Garis Diagonal\n\nInput  : analisis_koordinat((0, 10))\nOutput : Berada di Sumbu Y",
+      "solution": "def analisis_koordinat(data):\n    match data:\n        case (x, y) if x == y:\n            return 'Garis Diagonal'\n        case (0, _):\n            return 'Berada di Sumbu Y'\n        case {'tipe': '3D', 'x': _, 'y': _, 'z': _}:\n            return 'Titik 3 Dimensi'\n        case _:\n            return 'Data Tidak Dikenali'",
+      "function_stub": "def analisis_koordinat(data):\n    pass",
+      "test_cases": [
+        "assert analisis_koordinat((5, 5)) == 'Garis Diagonal'",
+        "assert analisis_koordinat((0, 7)) == 'Berada di Sumbu Y'",
+        "assert analisis_koordinat({'tipe':'3D','x':1,'y':2,'z':3}) == 'Titik 3 Dimensi'"
+      ]
+    },
+    {
+      "id": 53,
+      "title": "Short-Circuit Discount Logic",
+      "difficulty": "hard",
+      "topic": "Conditionals",
+      "problem_statement": "Write a function cek_diskon(stok, lunas, is_vip, total_belanja) that returns True if stock is available AND payment is valid AND (user is VIP OR total_belanja >= 100000). The function must NOT use any if-statement, only boolean expressions.",
+      "example": "Input  : cek_diskon(5, True, False, 150000)\nOutput : True",
+      "solution": "def cek_diskon(stok, lunas, is_vip, total_belanja):\n    return (stok > 0) and lunas and (is_vip or (total_belanja >= 100000))",
+      "function_stub": "def cek_diskon(stok, lunas, is_vip, total_belanja):\n    pass",
+      "test_cases": [
+        "assert cek_diskon(5, True, False, 150000) is True",
+        "assert cek_diskon(2, True, True, 50000) is True",
+        "assert cek_diskon(0, True, True, 200000) is False"
+      ]
+    },
+    {
+      "id": 54,
+      "title": "Dictionary Dispatch Calculator",
+      "difficulty": "hard",
+      "topic": "Conditionals",
+      "problem_statement": "Create a calculator using dictionary dispatch instead of if-elif. Supported operations: 'tambah', 'kurang', 'kali', 'bagi'. Write a function hitung(operasi, a, b) that executes the correct operation using a dictionary of lambda functions. If the operation is invalid, return 'Operasi tidak valid'.",
+      "example": "Input  : hitung('kali', 5, 4)\nOutput : 20\n\nInput  : hitung('modulus', 10, 2)\nOutput : Operasi tidak valid",
+      "solution": "operasi_map = {\n    'tambah': lambda a, b: a + b,\n    'kurang': lambda a, b: a - b,\n    'kali': lambda a, b: a * b,\n    'bagi': lambda a, b: a / b if b != 0 else 'Error: Dibagi nol'\n}\n\ndef hitung(operasi, a, b):\n    return operasi_map.get(operasi, lambda a, b: 'Operasi tidak valid')(a, b)",
+      "function_stub": "def hitung(operasi, a, b):\n    pass",
+      "test_cases": [
+        "assert hitung('kali', 5, 4) == 20",
+        "assert hitung('bagi', 10, 2) == 5",
+        "assert hitung('modulus', 10, 2) == 'Operasi tidak valid'"
+      ]
+    },
+    {
+      "id": 55,
+      "title": "Print Number Range",
+      "difficulty": "easy",
+      "topic": "Loop",
+      "problem_statement": "Given two integers n and m where n < m, return a list of all integers from n to m inclusive. For example, n=1 and m=5 returns [1, 2, 3, 4, 5].",
+      "example": "Input  : n = 1, m = 5\nOutput : [1, 2, 3, 4, 5]\n\nInput  : n = 3, m = 7\nOutput : [3, 4, 5, 6, 7]",
+      "solution": "def number_range(n, m):\n    result = []\n    i = n\n    while i <= m:\n        result.append(i)\n        i += 1\n    return result",
+      "function_stub": "def number_range(n, m):\n    pass",
+      "test_cases": [
+        "assert number_range(1, 5) == [1, 2, 3, 4, 5]",
+        "assert number_range(3, 7) == [3, 4, 5, 6, 7]",
+        "assert number_range(0, 0) == [0]",
+        "assert number_range(-2, 2) == [-2, -1, 0, 1, 2]"
+      ]
+    },
+    {
+      "id": 56,
+      "title": "Rocket Countdown",
+      "difficulty": "easy",
+      "topic": "Loop",
+      "problem_statement": "Write a function countdown() that prints numbers from 5 to 1 using a for loop with range(). After the loop ends, the function should return the string 'Mulai!'.",
+      "example": "Input  : countdown()\nOutput : 5 4 3 2 1 Mulai!",
+      "solution": "def countdown():\n    for i in range(5, 0, -1):\n        print(i)\n    return 'Mulai!'",
+      "function_stub": "def countdown():\n    pass",
+      "test_cases": [
+        "assert countdown() == 'Mulai!'",
+        "assert isinstance(countdown(), str)",
+        "assert countdown().startswith('Mulai')"
+      ]
+    },
+    {
+      "id": 57,
+      "title": "Greeting Guests",
+      "difficulty": "easy",
+      "topic": "Loop",
+      "problem_statement": "Given a list tamu = ['Andi', 'Budi', 'Citra'], write a function sapa_tamu() that returns a list of greeting strings for each guest in the format 'Halo {nama}, selamat datang!'.",
+      "example": "Input  : sapa_tamu()\nOutput : ['Halo Andi, selamat datang!', 'Halo Budi, selamat datang!', 'Halo Citra, selamat datang!']",
+      "solution": "def sapa_tamu():\n    tamu = ['Andi', 'Budi', 'Citra']\n    hasil = []\n    for nama in tamu:\n        hasil.append(f'Halo {nama}, selamat datang!')\n    return hasil",
+      "function_stub": "def sapa_tamu():\n    pass",
+      "test_cases": [
+        "assert sapa_tamu() == ['Halo Andi, selamat datang!', 'Halo Budi, selamat datang!', 'Halo Citra, selamat datang!']",
+        "assert len(sapa_tamu()) == 3",
+        "assert all('Halo' in x for x in sapa_tamu())"
+      ]
+    },
+    {
+      "id": 58,
+      "title": "Sum of First N Even Numbers",
+      "difficulty": "intermediate",
+      "topic": "Loop",
+      "problem_statement": "Given an integer n, return the sum of the first n positive even numbers. For example, if n=5, the first 5 even numbers are 2, 4, 6, 8, 10 and their sum is 30.",
+      "example": "Input  : n = 5\nOutput : 30\n\nInput  : n = 3\nOutput : 12",
+      "solution": "def sum_first_n_even(n):\n    total = 0\n    bilangan = 2\n    i = 0\n    while i < n:\n        total += bilangan\n        bilangan += 2\n        i += 1\n    return total",
+      "function_stub": "def sum_first_n_even(n):\n    pass",
+      "test_cases": [
+        "assert sum_first_n_even(5) == 30",
+        "assert sum_first_n_even(3) == 12",
+        "assert sum_first_n_even(1) == 2",
+        "assert sum_first_n_even(10) == 110"
+      ]
+    },
+    {
+      "id": 59,
+      "title": "Rectangle Area and Perimeter List",
+      "difficulty": "intermediate",
+      "topic": "Loop",
+      "problem_statement": "Given a list of rectangles where each rectangle is [length, width], return a list of tuples (area, perimeter) for each rectangle. Area = length * width, Perimeter = 2 * (length + width).",
+      "example": "Input  : rectangles = [[4, 3], [5, 2]]\nOutput : [(12, 14), (10, 14)]",
+      "solution": "def rect_area_perimeter(rectangles):\n    result = []\n    for rect in rectangles:\n        length, width = rect[0], rect[1]\n        area = length * width\n        perimeter = 2 * (length + width)\n        result.append((area, perimeter))\n    return result",
+      "function_stub": "def rect_area_perimeter(rectangles):\n    pass",
+      "test_cases": [
+        "assert rect_area_perimeter([[4, 3], [5, 2]]) == [(12, 14), (10, 14)]",
+        "assert rect_area_perimeter([[1, 1]]) == [(1, 4)]",
+        "assert rect_area_perimeter([]) == []",
+        "assert rect_area_perimeter([[10, 5]]) == [(50, 30)]"
+      ]
+    },
+    {
+      "id": 60,
+      "title": "Volcano Eruption Count",
+      "difficulty": "intermediate",
+      "topic": "Loop",
+      "problem_statement": "A volcano erupts alternately every x years and y years (x < y). Given n total years, count how many times the volcano erupts. The first eruption is after x years, the second after y more years, the third after x more years, and so on.",
+      "example": "Input  : x = 3, y = 5, n = 20\nOutput : 4\n\nInput  : x = 2, y = 4, n = 10\nOutput : 3",
+      "solution": "def volcano_eruptions(x, y, n):\n    count = 0\n    remaining = n\n    i = 1\n    while remaining >= x:\n        if i % 2 != 0:\n            remaining -= x\n        else:\n            if remaining >= y:\n                remaining -= y\n            else:\n                break\n        count += 1\n        i += 1\n    return count",
+      "function_stub": "def volcano_eruptions(x, y, n):\n    pass",
+      "test_cases": [
+        "assert volcano_eruptions(3, 5, 20) == 4",
+        "assert volcano_eruptions(2, 4, 10) == 3",
+        "assert volcano_eruptions(1, 2, 6) == 4",
+        "assert volcano_eruptions(5, 10, 4) == 0"
+      ]
+    },
+    {
+      "id": 61,
+      "title": "Login Attempt Counter",
+      "difficulty": "hard",
+      "topic": "Loop",
+      "problem_statement": "Given a list of (username, password) tuples, count how many failed attempts occur before the correct login ('admin', 'admin'). Return the count of failed attempts.",
+      "example": "Input  : attempts = [('user', 'pass'), ('admin', 'wrong'), ('admin', 'admin')]\nOutput : 2",
+      "solution": "def login_attempts(attempts):\n    count = 0\n    for username, password in attempts:\n        if username == 'admin' and password == 'admin':\n            break\n        count += 1\n    return count",
+      "function_stub": "def login_attempts(attempts):\n    pass",
+      "test_cases": [
+        "assert login_attempts([('user', 'pass'), ('admin', 'wrong'), ('admin', 'admin')]) == 2",
+        "assert login_attempts([('admin', 'admin')]) == 0",
+        "assert login_attempts([('a', 'b'), ('c', 'd'), ('admin', 'admin')]) == 2",
+        "assert login_attempts([('x', 'y'), ('admin', 'admin')]) == 1"
+      ]
+    },
+    {
+      "id": 62,
+      "title": "Print Integers Pattern",
+      "difficulty": "hard",
+      "topic": "Loop",
+      "problem_statement": "Given an integer n, return a list of integers from 1 to n where each even-indexed position (1-based) is replaced by its negative. For example, n=5: [1, -2, 3, -4, 5].",
+      "example": "Input  : n = 5\nOutput : [1, -2, 3, -4, 5]\n\nInput  : n = 4\nOutput : [1, -2, 3, -4]",
+      "solution": "def integer_pattern(n):\n    result = []\n    for i in range(1, n + 1):\n        if i % 2 == 0:\n            result.append(-i)\n        else:\n            result.append(i)\n    return result",
+      "function_stub": "def integer_pattern(n):\n    pass",
+      "test_cases": [
+        "assert integer_pattern(5) == [1, -2, 3, -4, 5]",
+        "assert integer_pattern(4) == [1, -2, 3, -4]",
+        "assert integer_pattern(1) == [1]",
+        "assert integer_pattern(6) == [1, -2, 3, -4, 5, -6]"
+      ]
+    },
+    {
+      "id": 63,
+      "title": "Weekly Savings",
+      "difficulty": "hard",
+      "topic": "Loop",
+      "problem_statement": "Given an initial savings amount and a weekly addition amount, return how many weeks it takes for the savings to reach or exceed a target amount.",
+      "example": "Input  : initial = 10000, weekly = 5000, target = 30000\nOutput : 4\n\nInput  : initial = 50000, weekly = 10000, target = 100000\nOutput : 5",
+      "solution": "def weeks_to_target(initial, weekly, target):\n    weeks = 0\n    savings = initial\n    while savings < target:\n        savings += weekly\n        weeks += 1\n    return weeks",
+      "function_stub": "def weeks_to_target(initial, weekly, target):\n    pass",
+      "test_cases": [
+        "assert weeks_to_target(10000, 5000, 30000) == 4",
+        "assert weeks_to_target(50000, 10000, 100000) == 5",
+        "assert weeks_to_target(0, 1000, 5000) == 5",
+        "assert weeks_to_target(100, 100, 100) == 0"
+      ]
     }
   ]
 }
