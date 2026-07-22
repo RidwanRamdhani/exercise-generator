@@ -56,7 +56,7 @@ export class DatabaseService {
 
   constructor(extensionPath: string) {
     this.scriptPath = path.join(extensionPath, 'tinydb_service.py');
-    this.seedJsonPath = path.join(extensionPath, 'src', 'data', 'seed_exercises.json');
+    this.seedJsonPath = path.join(extensionPath, 'src', 'data', 'seed_exercises_v2.json');
     this.pythonCmd = this._detectPython();
   }
 

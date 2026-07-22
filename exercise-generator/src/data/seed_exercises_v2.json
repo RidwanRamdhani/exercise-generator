@@ -1,0 +1,966 @@
+{
+  "seed_exercises": [
+    {
+      "id": 1,
+      "title": "Gravity Calculator",
+      "difficulty": "easy",
+      "topic": "Constants",
+      "problem_statement": "According to the PEP 8 naming convention, constants should be written in uppercase letters. Create a constant named GRAVITASI_BUMI with a value of 9.8. Then create a function hitung_berat(massa) that multiplies the given mass by the GRAVITASI_BUMI constant and returns the result.",
+      "example": "Input  : hitung_berat(50)\nOutput : 490.0",
+      "solution": "GRAVITASI_BUMI = 9.8\n\ndef hitung_berat(massa):\n    return massa * GRAVITASI_BUMI",
+      "function_stub": "GRAVITASI_BUMI = 9.8\n\ndef hitung_berat(massa):\n    pass",
+      "test_cases": [
+        "assert round(hitung_berat(50), 10) == 490.0",
+        "assert hitung_berat(0) == 0.0",
+        "assert hitung_berat(10) == 98.0",
+        "assert hitung_berat(2.5) == 24.5"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Using Built-in Math Constants",
+      "difficulty": "easy",
+      "topic": "Constants",
+      "problem_statement": "Import pi from the math module. Create a global constant named PI_APPROX that stores math.pi rounded to 4 decimal places. Use PI_APPROX to calculate the circumference of a circle with radius 7.",
+      "example": "Input  : jari_jari = 7\nOutput : 43.9824",
+      "solution": "from math import pi\n\nPI_APPROX = round(pi, 4)\n\ndef hitung_keliling(jari_jari):\n    return 2 * PI_APPROX * jari_jari",
+      "function_stub": "from math import pi\n\nPI_APPROX = round(pi, 4)\n\ndef hitung_keliling(jari_jari):\n    pass",
+      "test_cases": [
+        "assert hitung_keliling(7) == 43.9824",
+        "assert hitung_keliling(1) == 6.2832",
+        "assert hitung_keliling(0) == 0.0",
+        "assert hitung_keliling(2.5) == 15.708"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "System Messages",
+      "difficulty": "easy",
+      "topic": "Constants",
+      "problem_statement": "Declare two string constants: MSG_SUCCESS = 'Operasi Berhasil' and MSG_ERROR = 'Terjadi Kesalahan'. Create a function cek_status(kode) that returns MSG_SUCCESS if kode equals 200, otherwise returns MSG_ERROR.",
+      "example": "Input  : cek_status(200)\nOutput : Operasi Berhasil",
+      "solution": "MSG_SUCCESS = 'Operasi Berhasil'\nMSG_ERROR = 'Terjadi Kesalahan'\n\ndef cek_status(kode):\n    if kode == 200:\n        return MSG_SUCCESS\n    return MSG_ERROR",
+      "function_stub": "MSG_SUCCESS = 'Operasi Berhasil'\nMSG_ERROR = 'Terjadi Kesalahan'\n\ndef cek_status(kode):\n    pass",
+      "test_cases": [
+        "assert cek_status(200) == 'Operasi Berhasil'",
+        "assert cek_status(404) == 'Terjadi Kesalahan'",
+        "assert cek_status(500) == 'Terjadi Kesalahan'",
+        "assert cek_status(201) == 'Terjadi Kesalahan'"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Discount System with Final",
+      "difficulty": "intermediate",
+      "topic": "Constants",
+      "problem_statement": "Import Final from typing. Declare BATAS_DISKON: Final = 0.3. Create a function terapkan_diskon(harga, persentase_diskon) that applies the discount. If persentase_diskon exceeds BATAS_DISKON, use BATAS_DISKON instead.",
+      "example": "Input  : terapkan_diskon(100000, 0.5)\nOutput : 70000.0",
+      "solution": "from typing import Final\n\nBATAS_DISKON: Final = 0.3\n\ndef terapkan_diskon(harga, persentase_diskon):\n    if persentase_diskon > BATAS_DISKON:\n        persentase_diskon = BATAS_DISKON\n    return harga * (1 - persentase_diskon)",
+      "function_stub": "from typing import Final\n\nBATAS_DISKON: Final = 0.3\n\ndef terapkan_diskon(harga, persentase_diskon):\n    pass",
+      "test_cases": [
+        "assert terapkan_diskon(100000, 0.5) == 70000.0",
+        "assert terapkan_diskon(100000, 0.2) == 80000.0",
+        "assert terapkan_diskon(50000, 0.3) == 35000.0",
+        "assert terapkan_diskon(50000, 0.0) == 50000.0"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Order Status Enum",
+      "difficulty": "intermediate",
+      "topic": "Constants",
+      "problem_statement": "Create an Enum class named StatusPesanan with members DIPROSES = 1, DIKIRIM = 2, and SELESAI = 3. Create a function update_pesanan(status_saat_ini) that returns the next Enum member. If the status is SELESAI, return the string 'Pesanan sudah di tahap akhir'.",
+      "example": "Input  : update_pesanan(StatusPesanan.DIPROSES)\nOutput : StatusPesanan.DIKIRIM",
+      "solution": "from enum import Enum\n\nclass StatusPesanan(Enum):\n    DIPROSES = 1\n    DIKIRIM = 2\n    SELESAI = 3\n\ndef update_pesanan(status_saat_ini):\n    if status_saat_ini == StatusPesanan.DIPROSES:\n        return StatusPesanan.DIKIRIM\n    elif status_saat_ini == StatusPesanan.DIKIRIM:\n        return StatusPesanan.SELESAI\n    return 'Pesanan sudah di tahap akhir'",
+      "function_stub": "from enum import Enum\n\nclass StatusPesanan(Enum):\n    DIPROSES = 1\n    DIKIRIM = 2\n    SELESAI = 3\n\ndef update_pesanan(status_saat_ini):\n    pass",
+      "test_cases": [
+        "assert update_pesanan(StatusPesanan.DIPROSES) == StatusPesanan.DIKIRIM",
+        "assert update_pesanan(StatusPesanan.DIKIRIM) == StatusPesanan.SELESAI",
+        "assert update_pesanan(StatusPesanan.SELESAI) == 'Pesanan sudah di tahap akhir'"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "RGB Color Constants",
+      "difficulty": "intermediate",
+      "topic": "Constants",
+      "problem_statement": "Use collections.namedtuple to create a structure named Warna. Create constants MERAH = Warna(255,0,0), HIJAU = Warna(0,255,0), and BIRU = Warna(0,0,255). Write a function campur_warna(warna1, warna2) that returns a new RGB tuple containing the average value of each component.",
+      "example": "Input  : campur_warna(MERAH, HIJAU)\nOutput : (127, 127, 0)",
+      "solution": "from collections import namedtuple\n\nWarna = namedtuple('Warna', ['r', 'g', 'b'])\n\nMERAH = Warna(255,0,0)\nHIJAU = Warna(0,255,0)\nBIRU = Warna(0,0,255)\n\ndef campur_warna(warna1, warna2):\n    return ((warna1.r + warna2.r)//2, (warna1.g + warna2.g)//2, (warna1.b + warna2.b)//2)",
+      "function_stub": "from collections import namedtuple\n\nWarna = namedtuple('Warna', ['r', 'g', 'b'])\n\nMERAH = Warna(255,0,0)\nHIJAU = Warna(0,255,0)\nBIRU = Warna(0,0,255)\n\ndef campur_warna(warna1, warna2):\n    pass",
+      "test_cases": [
+        "assert campur_warna(MERAH, HIJAU) == (127, 127, 0)",
+        "assert campur_warna(MERAH, BIRU) == (127, 0, 127)",
+        "assert campur_warna(HIJAU, BIRU) == (0, 127, 127)",
+        "assert campur_warna(MERAH, MERAH) == (255, 0, 0)"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Immutable Constants Class",
+      "difficulty": "hard",
+      "topic": "Constants",
+      "problem_statement": "Create a class named KonstantaFisika. Initialize KECEPATAN_CAHAYA = 299792458 inside __init__. Override __setattr__ so that after initialization, any attempt to modify an attribute raises TypeError('Konstanta tidak dapat diubah!').",
+      "example": "Input  : obj.KECEPATAN_CAHAYA = 100\nOutput : TypeError('Konstanta tidak dapat diubah!')",
+      "solution": "class KonstantaFisika:\n    def __init__(self):\n        object.__setattr__(self, '_locked', False)\n        object.__setattr__(self, 'KECEPATAN_CAHAYA', 299792458)\n        object.__setattr__(self, '_locked', True)\n\n    def __setattr__(self, name, value):\n        if getattr(self, '_locked', False):\n            raise TypeError('Konstanta tidak dapat diubah!')\n        object.__setattr__(self, name, value)",
+      "function_stub": "class KonstantaFisika:\n    def __init__(self):\n        pass\n\n    def __setattr__(self, name, value):\n        pass",
+      "test_cases": [
+        "obj = KonstantaFisika(); assert obj.KECEPATAN_CAHAYA == 299792458",
+        "obj = KonstantaFisika(); raised=False\ntry:\n    obj.KECEPATAN_CAHAYA=100\nexcept TypeError:\n    raised=True\nassert raised"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Read-only Application Configuration",
+      "difficulty": "hard",
+      "topic": "Constants",
+      "problem_statement": "Use MappingProxyType from the types module to wrap the dictionary {'API_KEY':'12345ABC','PORT':8080} into APP_CONFIG. Create a function that attempts to change PORT to 9000. Catch the exception and return 'Akses ditolak: Konfigurasi bersifat read-only' if modification fails.",
+      "example": "Input  : ubah_konfigurasi()\nOutput : Akses ditolak: Konfigurasi bersifat read-only",
+      "solution": "from types import MappingProxyType\n\nAPP_CONFIG = MappingProxyType({'API_KEY':'12345ABC','PORT':8080})\n\ndef ubah_konfigurasi():\n    try:\n        APP_CONFIG['PORT'] = 9000\n    except TypeError:\n        return 'Akses ditolak: Konfigurasi bersifat read-only'",
+      "function_stub": "from types import MappingProxyType\n\nAPP_CONFIG = MappingProxyType({'API_KEY':'12345ABC','PORT':8080})\n\ndef ubah_konfigurasi():\n    pass",
+      "test_cases": [
+        "assert APP_CONFIG['PORT'] == 8080",
+        "assert ubah_konfigurasi() == 'Akses ditolak: Konfigurasi bersifat read-only'",
+        "assert APP_CONFIG['PORT'] == 8080"
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Frozen Game Settings",
+      "difficulty": "hard",
+      "topic": "Constants",
+      "problem_statement": "Create a frozen dataclass named GameSettings with default values MAX_PLAYERS=4, DIFFICULTY='Hard', and SPAWN_COORDS=(10,20). Create a function hack_game(settings_obj) that uses object.__setattr__ to attempt changing MAX_PLAYERS to 99 and returns the resulting value.",
+      "example": "Input  : hack_game(GameSettings())\nOutput : 99",
+      "solution": "from dataclasses import dataclass\n\n@dataclass(frozen=True)\nclass GameSettings:\n    MAX_PLAYERS: int = 4\n    DIFFICULTY: str = 'Hard'\n    SPAWN_COORDS: tuple = (10, 20)\n\ndef hack_game(settings_obj):\n    object.__setattr__(settings_obj, 'MAX_PLAYERS', 99)\n    return settings_obj.MAX_PLAYERS",
+      "function_stub": "from dataclasses import dataclass\n\n@dataclass(frozen=True)\nclass GameSettings:\n    MAX_PLAYERS: int = 4\n    DIFFICULTY: str = 'Hard'\n    SPAWN_COORDS: tuple = (10, 20)\n\ndef hack_game(settings_obj):\n    pass",
+      "test_cases": [
+        "settings = GameSettings(); assert settings.MAX_PLAYERS == 4",
+        "settings = GameSettings(); assert hack_game(settings) == 99",
+        "settings = GameSettings(); hack_game(settings); assert settings.MAX_PLAYERS == 99"
+      ]
+    },
+    {
+      "id": 10,
+      "title": "User Profile",
+      "difficulty": "easy",
+      "topic": "Variables",
+      "problem_statement": "Create three variables: nama (string), umur (integer), and tinggi (float). Assign them the values 'Budi', 20, and 1.7 respectively. Write a function profil_pengguna() that returns the sentence 'Nama saya Budi, umur 20 tahun, dan tinggi 1.7 meter.' using those variables.",
+      "example": "Input  : profil_pengguna()\nOutput : Nama saya Budi, umur 20 tahun, dan tinggi 1.7 meter.",
+      "solution": "def profil_pengguna():\n    nama = 'Budi'\n    umur = 20\n    tinggi = 1.7\n    return f'Nama saya {nama}, umur {umur} tahun, dan tinggi {tinggi} meter.'",
+      "function_stub": "def profil_pengguna():\n    pass",
+      "test_cases": [
+        "assert profil_pengguna() == 'Nama saya Budi, umur 20 tahun, dan tinggi 1.7 meter.'",
+        "assert isinstance(profil_pengguna(), str)",
+        "assert 'Budi' in profil_pengguna()"
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Multiple Assignment",
+      "difficulty": "easy",
+      "topic": "Variables",
+      "problem_statement": "Declare three variables x, y, and z in a single line with the values 10, 20, and 30. Create another variable named total that stores the sum of x, y, and z. Write a function hitung_total() that returns total.",
+      "example": "Input  : hitung_total()\nOutput : 60",
+      "solution": "def hitung_total():\n    x, y, z = 10, 20, 30\n    total = x + y + z\n    return total",
+      "function_stub": "def hitung_total():\n    pass",
+      "test_cases": [
+        "assert hitung_total() == 60",
+        "assert isinstance(hitung_total(), int)",
+        "assert hitung_total() > 0"
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Fix Invalid Variable Names",
+      "difficulty": "easy",
+      "topic": "Variables",
+      "problem_statement": "The following variable names are invalid in Python: '1angka', 'nama depan', and 'class'. Rename them using valid snake_case variable names and assign the same values. Write a function perbaiki_variabel() that returns the values as a tuple in the order (angka_1, nama_depan, kelas_ku).",
+      "example": "Input  : perbaiki_variabel()\nOutput : (100, 'Andi', 'Kelas A')",
+      "solution": "def perbaiki_variabel():\n    angka_1 = 100\n    nama_depan = 'Andi'\n    kelas_ku = 'Kelas A'\n    return angka_1, nama_depan, kelas_ku",
+      "function_stub": "def perbaiki_variabel():\n    pass",
+      "test_cases": [
+        "assert perbaiki_variabel() == (100, 'Andi', 'Kelas A')",
+        "assert perbaiki_variabel()[0] == 100",
+        "assert perbaiki_variabel()[2] == 'Kelas A'"
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Swap Two Variables",
+      "difficulty": "intermediate",
+      "topic": "Variables",
+      "problem_statement": "Given two variables a = 15 and b = 85, swap their values in a single line without using a temporary variable. Write a function tukar_nilai() that returns the swapped values as a tuple (a, b).",
+      "example": "Input  : tukar_nilai()\nOutput : (85, 15)",
+      "solution": "def tukar_nilai():\n    a = 15\n    b = 85\n    a, b = b, a\n    return a, b",
+      "function_stub": "def tukar_nilai():\n    pass",
+      "test_cases": [
+        "assert tukar_nilai() == (85, 15)",
+        "assert tukar_nilai()[0] == 85",
+        "assert tukar_nilai()[1] == 15"
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Modify Global Variable",
+      "difficulty": "intermediate",
+      "topic": "Variables",
+      "problem_statement": "Create a global variable saldo with the value 50000. Write a function tambah_saldo(jumlah) that uses the global keyword to add jumlah to saldo and returns the updated saldo.",
+      "example": "Input  : tambah_saldo(20000)\nOutput : 70000",
+      "solution": "saldo = 50000\n\ndef tambah_saldo(jumlah):\n    global saldo\n    saldo += jumlah\n    return saldo",
+      "function_stub": "saldo = 50000\n\ndef tambah_saldo(jumlah):\n    pass",
+      "test_cases": [
+        "saldo = 50000\nassert tambah_saldo(20000) == 70000",
+        "saldo = 50000\nassert tambah_saldo(0) == 50000",
+        "saldo = 50000\nassert tambah_saldo(-5000) == 45000"
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Copy a List Without Sharing References",
+      "difficulty": "intermediate",
+      "topic": "Variables",
+      "problem_statement": "Create list_A = [1, 2, 3]. Create list_B as a true copy of list_A (not just another reference). Append the value 4 to list_B. Write a function salin_list() that returns both lists as a tuple (list_A, list_B).",
+      "example": "Input  : salin_list()\nOutput : ([1, 2, 3], [1, 2, 3, 4])",
+      "solution": "def salin_list():\n    list_A = [1, 2, 3]\n    list_B = list_A.copy()\n    list_B.append(4)\n    return list_A, list_B",
+      "function_stub": "def salin_list():\n    pass",
+      "test_cases": [
+        "assert salin_list() == ([1, 2, 3], [1, 2, 3, 4])",
+        "assert salin_list()[0] == [1, 2, 3]",
+        "assert salin_list()[1] == [1, 2, 3, 4]"
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Counter with nonlocal",
+      "difficulty": "hard",
+      "topic": "Variables",
+      "problem_statement": "Create a function mesin_penghitung() that initializes a variable hitungan = 0. Inside it, define another function tambah() that uses the nonlocal keyword to increment hitungan by 1 every time it is called and returns the updated value. Return the inner function tambah.",
+      "example": "Input  : counter = mesin_penghitung()\n         counter()\n         counter()\nOutput : 1\n         2",
+      "solution": "def mesin_penghitung():\n    hitungan = 0\n\n    def tambah():\n        nonlocal hitungan\n        hitungan += 1\n        return hitungan\n\n    return tambah",
+      "function_stub": "def mesin_penghitung():\n    pass",
+      "test_cases": [
+        "counter = mesin_penghitung(); assert counter() == 1",
+        "counter = mesin_penghitung(); counter(); assert counter() == 2",
+        "counter1 = mesin_penghitung(); counter2 = mesin_penghitung(); counter1(); assert counter2() == 1"
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Process Data by Type",
+      "difficulty": "hard",
+      "topic": "Variables",
+      "problem_statement": "Write a function proses_data(data). If data is a string, return its length. If it is an integer or float, return the value multiplied by 10. If it is a list, return its first item, or None if the list is empty. For any other type, return the string 'Unsupported type'. Use isinstance() in your solution.",
+      "example": "Input  : proses_data('Python')\nOutput : 6\n\nInput  : proses_data(3.5)\nOutput : 35.0",
+      "solution": "def proses_data(data):\n    if isinstance(data, str):\n        return len(data)\n    elif isinstance(data, (int, float)):\n        return data * 10\n    elif isinstance(data, list):\n        return data[0] if data else None\n    return 'Unsupported type'",
+      "function_stub": "def proses_data(data):\n    pass",
+      "test_cases": [
+        "assert proses_data('Python') == 6",
+        "assert proses_data(3.5) == 35.0",
+        "assert proses_data(['Apel', 'Jeruk']) == 'Apel'"
+      ]
+    },
+    {
+      "id": 18,
+      "title": "Object Identity",
+      "difficulty": "hard",
+      "topic": "Variables",
+      "problem_statement": "Create variables w = 256 and x = 256, then variables y = int('1000') and z = int('1000'). Write a function cek_identitas() that returns a tuple containing (w is x, y is z). Using int('1000') ensures that y and z are created as separate integer objects on most Python implementations.",
+      "example": "Input  : cek_identitas()\nOutput : (True, False)",
+      "solution": "def cek_identitas():\n    w = 256\n    x = 256\n    y = int('1000')\n    z = int('1000')\n    return (w is x, y is z)",
+      "function_stub": "def cek_identitas():\n    pass",
+      "test_cases": [
+        "assert cek_identitas()[0] is True",
+        "assert isinstance(cek_identitas(), tuple)",
+        "assert len(cek_identitas()) == 2"
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Cake Distribution",
+      "difficulty": "easy",
+      "topic": "Operators",
+      "problem_statement": "You have 23 pieces of cake to distribute equally among 5 children. Write a function bagi_kue() that returns a tuple containing the number of whole pieces each child receives and the remaining pieces using the floor division (//) and modulo (%) operators.",
+      "example": "Input  : bagi_kue()\nOutput : (4, 3)",
+      "solution": "def bagi_kue():\n    total_kue = 23\n    jumlah_anak = 5\n    porsi = total_kue // jumlah_anak\n    sisa = total_kue % jumlah_anak\n    return (porsi, sisa)",
+      "function_stub": "def bagi_kue():\n    pass",
+      "test_cases": [
+        "assert bagi_kue() == (4, 3)",
+        "assert bagi_kue()[0] == 4",
+        "assert bagi_kue()[1] == 3"
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Driving License Eligibility",
+      "difficulty": "easy",
+      "topic": "Operators",
+      "problem_statement": "A person is eligible to apply for a driving license if they are at least 17 years old and have passed the driving test. Given usia = 18 and lulus_ujian = True, write a function cek_sim() that returns whether the person is eligible.",
+      "example": "Input  : cek_sim()\nOutput : True",
+      "solution": "def cek_sim():\n    usia = 18\n    lulus_ujian = True\n    return usia >= 17 and lulus_ujian",
+      "function_stub": "def cek_sim():\n    pass",
+      "test_cases": [
+        "assert cek_sim() is True",
+        "assert isinstance(cek_sim(), bool)",
+        "assert cek_sim() == True"
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Text Banner",
+      "difficulty": "easy",
+      "topic": "Operators",
+      "problem_statement": "Using string operators, create a decorative banner by repeating the '-' character 10 times before and after the word ' GOAL '. Write a function buat_banner() that returns the resulting string.",
+      "example": "Input  : buat_banner()\nOutput : ---------- GOAL ----------",
+      "solution": "def buat_banner():\n    return ('-' * 10) + ' GOAL ' + ('-' * 10)",
+      "function_stub": "def buat_banner():\n    pass",
+      "test_cases": [
+        "assert buat_banner() == '---------- GOAL ----------'",
+        "assert 'GOAL' in buat_banner()",
+        "assert buat_banner().count('-') == 20"
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Operator Precedence",
+      "difficulty": "intermediate",
+      "topic": "Operators",
+      "problem_statement": "Python evaluates operators based on precedence rules. Write a function operator_precedence() that calculates the values of the expressions -2 ** 4 and (-2) ** 4, then returns both results as a tuple.",
+      "example": "Input  : operator_precedence()\nOutput : (-16, 16)",
+      "solution": "def operator_precedence():\n    hasil_1 = -2 ** 4\n    hasil_2 = (-2) ** 4\n    return (hasil_1, hasil_2)",
+      "function_stub": "def operator_precedence():\n    pass",
+      "test_cases": [
+        "assert operator_precedence() == (-16, 16)",
+        "assert operator_precedence()[0] == -16",
+        "assert operator_precedence()[1] == 16"
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Default Value with Short-Circuit",
+      "difficulty": "intermediate",
+      "topic": "Operators",
+      "problem_statement": "Given input_user = '', use the logical or operator to assign a default value of 'Guest' when input_user is empty. Write a function nama_tampilan() that returns the display name.",
+      "example": "Input  : nama_tampilan()\nOutput : Guest",
+      "solution": "def nama_tampilan():\n    input_user = ''\n    return input_user or 'Guest'",
+      "function_stub": "def nama_tampilan():\n    pass",
+      "test_cases": [
+        "assert nama_tampilan() == 'Guest'",
+        "assert isinstance(nama_tampilan(), str)",
+        "assert len(nama_tampilan()) > 0"
+      ]
+    },
+    {
+      "id": 24,
+      "title": "Identity vs Equality",
+      "difficulty": "intermediate",
+      "topic": "Operators",
+      "problem_statement": "Create two separate lists: list_x = [1, 2, 3] and list_y = [1, 2, 3]. Write a function cek_list() that returns a tuple containing the results of list_x == list_y and list_x is list_y.",
+      "example": "Input  : cek_list()\nOutput : (True, False)",
+      "solution": "def cek_list():\n    list_x = [1, 2, 3]\n    list_y = [1, 2, 3]\n    return (list_x == list_y, list_x is list_y)",
+      "function_stub": "def cek_list():\n    pass",
+      "test_cases": [
+        "assert cek_list() == (True, False)",
+        "assert cek_list()[0] is True",
+        "assert cek_list()[1] is False"
+      ]
+    },
+    {
+      "id": 25,
+      "title": "File Permission Flags",
+      "difficulty": "hard",
+      "topic": "Operators",
+      "problem_statement": "Given READ = 4, WRITE = 2, and EXECUTE = 1, create a variable izin_user that combines READ and WRITE using the bitwise OR operator. Write a function cek_izin() that returns a tuple containing whether the user has WRITE access and whether the user has EXECUTE access using the bitwise AND operator.",
+      "example": "Input  : cek_izin()\nOutput : (True, False)",
+      "solution": "def cek_izin():\n    READ = 4\n    WRITE = 2\n    EXECUTE = 1\n    izin_user = READ | WRITE\n    return ((izin_user & WRITE) != 0, (izin_user & EXECUTE) != 0)",
+      "function_stub": "def cek_izin():\n    pass",
+      "test_cases": [
+        "assert cek_izin() == (True, False)",
+        "assert cek_izin()[0] is True",
+        "assert cek_izin()[1] is False"
+      ]
+    },
+    {
+      "id": 26,
+      "title": "Vector Addition",
+      "difficulty": "hard",
+      "topic": "Operators",
+      "problem_statement": "Create a class Vektor2D with attributes x and y. Overload the + operator so that adding two Vektor2D objects returns a new Vektor2D object whose coordinates are the sums of the corresponding coordinates.",
+      "example": "Input  : Vektor2D(2, 4) + Vektor2D(5, 1)\nOutput : (7, 5)",
+      "solution": "class Vektor2D:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\n    def __add__(self, other):\n        return Vektor2D(self.x + other.x, self.y + other.y)\n\ndef tambah_vektor():\n    v1 = Vektor2D(2, 4)\n    v2 = Vektor2D(5, 1)\n    hasil = v1 + v2\n    return (hasil.x, hasil.y)",
+      "function_stub": "class Vektor2D:\n    def __init__(self, x, y):\n        pass\n\n    def __add__(self, other):\n        pass\n\ndef tambah_vektor():\n    pass",
+      "test_cases": [
+        "assert tambah_vektor() == (7, 5)",
+        "assert tambah_vektor()[0] == 7",
+        "assert tambah_vektor()[1] == 5"
+      ]
+    },
+    {
+      "id": 27,
+      "title": "Walrus Operator",
+      "difficulty": "hard",
+      "topic": "Operators",
+      "problem_statement": "Given the string 'Belajar Python Dasar', write a function cek_panjang() that uses the walrus operator (:=) inside an if statement. If the string length is greater than 10, return the message 'Kalimat terlalu panjang! Terdeteksi ada 21 karakter.'. Otherwise, return 'Panjang kalimat aman, hanya n karakter.'. The length must only be computed once using the walrus operator.",
+      "example": "Input  : cek_panjang()\nOutput : Kalimat terlalu panjang! Terdeteksi ada 21 karakter.",
+      "solution": "def cek_panjang():\n    kalimat = 'Belajar Python Dasar'\n    if (n := len(kalimat)) > 10:\n        return f'Kalimat terlalu panjang! Terdeteksi ada {n} karakter.'\n    return f'Panjang kalimat aman, hanya {n} karakter.'",
+      "function_stub": "def cek_panjang():\n    pass",
+      "test_cases": [
+        "assert cek_panjang() == 'Kalimat terlalu panjang! Terdeteksi ada 20 karakter.'",
+        "assert '20' in cek_panjang()",
+        "assert isinstance(cek_panjang(), str)"
+      ]
+    },
+    {
+      "id": 28,
+      "title": "Triangle Area",
+      "difficulty": "easy",
+      "topic": "Expressions",
+      "problem_statement": "Create two variables: alas = 10 and tinggi = 15. Write a function hitung_luas() that calculates the area of a triangle using the arithmetic expression 0.5 * alas * tinggi and returns the result.",
+      "example": "Input  : hitung_luas()\nOutput : 75.0",
+      "solution": "def hitung_luas():\n    alas = 10\n    tinggi = 15\n    luas = 0.5 * alas * tinggi\n    return luas",
+      "function_stub": "def hitung_luas():\n    pass",
+      "test_cases": [
+        "assert hitung_luas() == 75.0",
+        "assert isinstance(hitung_luas(), float)",
+        "assert hitung_luas() > 0"
+      ]
+    },
+    {
+      "id": 29,
+      "title": "Even Number Check",
+      "difficulty": "easy",
+      "topic": "Expressions",
+      "problem_statement": "Create a variable angka = 42. Write a function cek_genap() that evaluates the boolean expression angka % 2 == 0 and returns the result.",
+      "example": "Input  : cek_genap()\nOutput : True",
+      "solution": "def cek_genap():\n    angka = 42\n    return angka % 2 == 0",
+      "function_stub": "def cek_genap():\n    pass",
+      "test_cases": [
+        "assert cek_genap() is True",
+        "assert isinstance(cek_genap(), bool)",
+        "assert cek_genap() == True"
+      ]
+    },
+    {
+      "id": 30,
+      "title": "String Expression",
+      "difficulty": "easy",
+      "topic": "Expressions",
+      "problem_statement": "Given the string 'Waku ', write a function buat_sorakan() that repeats the string twice and concatenates it with 'Yay!'. Return the resulting string.",
+      "example": "Input  : buat_sorakan()\nOutput : Waku Waku Yay!",
+      "solution": "def buat_sorakan():\n    kata = 'Waku '\n    sorakan = (kata * 2) + 'Yay!'\n    return sorakan",
+      "function_stub": "def buat_sorakan():\n    pass",
+      "test_cases": [
+        "assert buat_sorakan() == 'Waku Waku Yay!'",
+        "assert buat_sorakan().startswith('Waku')",
+        "assert buat_sorakan().endswith('Yay!')"
+      ]
+    },
+    {
+      "id": 31,
+      "title": "Ternary Expression",
+      "difficulty": "intermediate",
+      "topic": "Expressions",
+      "problem_statement": "Create a variable nilai = 75. Write a function cek_kelulusan() that uses a ternary conditional expression to return 'Lulus' if nilai is greater than or equal to 70, otherwise return 'Gagal'.",
+      "example": "Input  : cek_kelulusan()\nOutput : Lulus",
+      "solution": "def cek_kelulusan():\n    nilai = 75\n    status = 'Lulus' if nilai >= 70 else 'Gagal'\n    return status",
+      "function_stub": "def cek_kelulusan():\n    pass",
+      "test_cases": [
+        "assert cek_kelulusan() == 'Lulus'",
+        "assert isinstance(cek_kelulusan(), str)",
+        "assert cek_kelulusan() != 'Gagal'"
+      ]
+    },
+    {
+      "id": 32,
+      "title": "List Comprehension",
+      "difficulty": "intermediate",
+      "topic": "Expressions",
+      "problem_statement": "Given the list angka = [1, 2, 3, 4, 5], use a list comprehension to create a new list containing only the squares of the even numbers. Write a function kuadrat_genap() that returns the new list.",
+      "example": "Input  : kuadrat_genap()\nOutput : [4, 16]",
+      "solution": "def kuadrat_genap():\n    angka = [1, 2, 3, 4, 5]\n    return [x ** 2 for x in angka if x % 2 == 0]",
+      "function_stub": "def kuadrat_genap():\n    pass",
+      "test_cases": [
+        "assert kuadrat_genap() == [4, 16]",
+        "assert len(kuadrat_genap()) == 2",
+        "assert all(x % 4 == 0 for x in kuadrat_genap())"
+      ]
+    },
+    {
+      "id": 33,
+      "title": "Lambda Expression",
+      "difficulty": "intermediate",
+      "topic": "Expressions",
+      "problem_statement": "Create a lambda expression that multiplies two numbers and stores it in a variable named kali. Write a function hasil_perkalian() that uses the lambda expression to multiply 7 and 8, then returns the result.",
+      "example": "Input  : hasil_perkalian()\nOutput : 56",
+      "solution": "def hasil_perkalian():\n    kali = lambda a, b: a * b\n    return kali(7, 8)",
+      "function_stub": "def hasil_perkalian():\n    pass",
+      "test_cases": [
+        "assert hasil_perkalian() == 56",
+        "assert isinstance(hasil_perkalian(), int)",
+        "assert hasil_perkalian() > 50"
+      ]
+    },
+    {
+      "id": 34,
+      "title": "Safe Literal Evaluation",
+      "difficulty": "hard",
+      "topic": "Expressions",
+      "problem_statement": "Given the string ekspresi_str = '{\"a\": 1, \"b\": 2}', use ast.literal_eval() to safely evaluate the string into a Python dictionary. Write a function evaluasi_literal() that returns the resulting dictionary.",
+      "example": "Input  : evaluasi_literal()\nOutput : {'a': 1, 'b': 2}",
+      "solution": "import ast\n\ndef evaluasi_literal():\n    ekspresi_str = '{\"a\": 1, \"b\": 2}'\n    return ast.literal_eval(ekspresi_str)",
+      "function_stub": "import ast\n\ndef evaluasi_literal():\n    pass",
+      "test_cases": [
+        "assert evaluasi_literal() == {'a': 1, 'b': 2}",
+        "assert isinstance(evaluasi_literal(), dict)",
+        "assert evaluasi_literal()['b'] == 2"
+      ]
+    },
+    {
+      "id": 35,
+      "title": "Generator Expression",
+      "difficulty": "hard",
+      "topic": "Expressions",
+      "problem_statement": "Create a generator expression that generates the squares of numbers from 1 to 1,000,000. Write a function tiga_pertama() that returns the first three generated values as a tuple using next().",
+      "example": "Input  : tiga_pertama()\nOutput : (1, 4, 9)",
+      "solution": "def tiga_pertama():\n    generator_kuadrat = (x ** 2 for x in range(1, 1000001))\n    return (next(generator_kuadrat), next(generator_kuadrat), next(generator_kuadrat))",
+      "function_stub": "def tiga_pertama():\n    pass",
+      "test_cases": [
+        "assert tiga_pertama() == (1, 4, 9)",
+        "assert isinstance(tiga_pertama(), tuple)",
+        "assert len(tiga_pertama()) == 3"
+      ]
+    },
+    {
+      "id": 36,
+      "title": "Nested Walrus Expression",
+      "difficulty": "hard",
+      "topic": "Expressions",
+      "problem_statement": "Create a function get_data() that returns the list [10, 20, 30]. Write another function cek_total() that uses nested walrus operators (:=) to assign the result of get_data() to a variable, calculate its sum, and return the string 'Data valid: [10, 20, 30]. Total besar: 60' if the total is greater than 50. Otherwise, return 'Total di bawah 50.'.",
+      "example": "Input  : cek_total()\nOutput : Data valid: [10, 20, 30]. Total besar: 60",
+      "solution": "def get_data():\n    return [10, 20, 30]\n\ndef cek_total():\n    if (total := sum(data := get_data())) > 50:\n        return f'Data valid: {data}. Total besar: {total}'\n    return 'Total di bawah 50.'",
+      "function_stub": "def get_data():\n    return [10, 20, 30]\n\ndef cek_total():\n    pass",
+      "test_cases": [
+        "assert cek_total() == 'Data valid: [10, 20, 30]. Total besar: 60'",
+        "assert '60' in cek_total()",
+        "assert cek_total().startswith('Data valid')"
+      ]
+    },
+    {
+      "id": 37,
+      "title": "Calculate Age",
+      "difficulty": "easy",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function hitung_umur(tahun_lahir) that receives a birth year as an integer and returns the estimated age in the year 2024.",
+      "example": "Input  : hitung_umur(2004)\nOutput : 20",
+      "solution": "def hitung_umur(tahun_lahir):\n    return 2024 - tahun_lahir",
+      "function_stub": "def hitung_umur(tahun_lahir):\n    pass",
+      "test_cases": [
+        "assert hitung_umur(2004) == 20",
+        "assert hitung_umur(1999) == 25",
+        "assert hitung_umur(2024) == 0"
+      ]
+    },
+    {
+      "id": 38,
+      "title": "Format Currency",
+      "difficulty": "easy",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function format_harga(harga) that formats a number as Indonesian Rupiah using commas as thousands separators and two decimal places. For example, 12500000 should become 'Rp 12,500,000.00'.",
+      "example": "Input  : format_harga(12500000)\nOutput : Rp 12,500,000.00",
+      "solution": "def format_harga(harga):\n    return f'Rp {harga:,.2f}'",
+      "function_stub": "def format_harga(harga):\n    pass",
+      "test_cases": [
+        "assert format_harga(12500000) == 'Rp 12,500,000.00'",
+        "assert format_harga(1000) == 'Rp 1,000.00'",
+        "assert format_harga(50) == 'Rp 50.00'"
+      ]
+    },
+    {
+      "id": 39,
+      "title": "Sum Two Numbers",
+      "difficulty": "easy",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function jumlah_dua_angka(data_input) that receives a string containing two integers separated by a space (for example, '10 20'). Split the string and return the sum of the two numbers.",
+      "example": "Input  : jumlah_dua_angka('10 20')\nOutput : 30",
+      "solution": "def jumlah_dua_angka(data_input):\n    a, b = data_input.split()\n    return int(a) + int(b)",
+      "function_stub": "def jumlah_dua_angka(data_input):\n    pass",
+      "test_cases": [
+        "assert jumlah_dua_angka('10 20') == 30",
+        "assert jumlah_dua_angka('5 7') == 12",
+        "assert jumlah_dua_angka('100 200') == 300"
+      ]
+    },
+    {
+      "id": 40,
+      "title": "Write to a File",
+      "difficulty": "intermediate",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function tulis_catatan(filename) that creates or overwrites a text file using a context manager. The function should write two lines: 'Baris Pertama' and 'Baris Kedua'. Return True after successfully writing the file.",
+      "example": "Input  : tulis_catatan('catatan.txt')\nOutput : True",
+      "solution": "def tulis_catatan(filename):\n    with open(filename, 'w', encoding='utf-8') as file:\n        file.write('Baris Pertama\\n')\n        file.write('Baris Kedua\\n')\n    return True",
+      "function_stub": "def tulis_catatan(filename):\n    pass",
+      "test_cases": [
+        "assert tulis_catatan('catatan.txt') is True",
+        "assert tulis_catatan('temp.txt') == True",
+        "assert isinstance(tulis_catatan('log.txt'), bool)"
+      ]
+    },
+    {
+      "id": 41,
+      "title": "Read a File",
+      "difficulty": "intermediate",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function baca_catatan(filename) that opens a text file using a context manager, reads each line, removes trailing newline characters, and returns the lines as a list of strings.",
+      "example": "Input  : baca_catatan('catatan.txt')\nOutput : ['Baris Pertama', 'Baris Kedua']",
+      "solution": "def baca_catatan(filename):\n    with open(filename, 'r', encoding='utf-8') as file:\n        return [baris.strip() for baris in file]",
+      "function_stub": "def baca_catatan(filename):\n    pass",
+      "test_cases": [
+        "with open('catatan.txt', 'w', encoding='utf-8') as f: f.write('Baris Pertama\nBaris Kedua\n')\nassert baca_catatan('catatan.txt') == ['Baris Pertama', 'Baris Kedua']",
+        "with open('temp.txt', 'w', encoding='utf-8') as f: f.write('Halo\nPython\n')\nassert baca_catatan('temp.txt') == ['Halo', 'Python']",
+        "with open('kosong.txt', 'w', encoding='utf-8') as f: pass\nassert baca_catatan('kosong.txt') == []"
+      ]
+    },
+    {
+      "id": 42,
+      "title": "Join with Separator",
+      "difficulty": "intermediate",
+      "topic": "Input/Output",
+      "problem_statement": "Given a list of strings, write a function gabung_data(data) that returns a single string where every element is separated by ' | ' and ends with a period. For example, ['Apel', 'Jeruk', 'Mangga'] should become 'Apel | Jeruk | Mangga.'.",
+      "example": "Input  : gabung_data(['Apel', 'Jeruk', 'Mangga'])\nOutput : Apel | Jeruk | Mangga.",
+      "solution": "def gabung_data(data):\n    return ' | '.join(data) + '.'",
+      "function_stub": "def gabung_data(data):\n    pass",
+      "test_cases": [
+        "assert gabung_data(['Apel', 'Jeruk', 'Mangga']) == 'Apel | Jeruk | Mangga.'",
+        "assert gabung_data(['A']) == 'A.'",
+        "assert gabung_data(['Python', 'Java']) == 'Python | Java.'"
+      ]
+    },
+    {
+      "id": 43,
+      "title": "Print to Standard Error",
+      "difficulty": "hard",
+      "topic": "Input/Output",
+      "problem_statement": "Import the sys module. Write a function print_error(message) that prints the given message to the standard error stream (sys.stderr) with the prefix '[ERROR]: '. The function should return None.",
+      "example": "Input  : print_error('Access denied')\nOutput : [ERROR]: Access denied (printed to stderr)",
+      "solution": "import sys\n\ndef print_error(message):\n    print(f'[ERROR]: {message}', file=sys.stderr)",
+      "function_stub": "import sys\n\ndef print_error(message):\n    pass",
+      "test_cases": [
+        "assert print_error('Access denied') is None",
+        "assert print_error('Database error') is None",
+        "assert print_error('Invalid input') is None"
+      ]
+    },
+    {
+      "id": 44,
+      "title": "Parse CSV String",
+      "difficulty": "hard",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function parse_csv(raw_csv) that parses a multiline CSV string into a list of dictionaries. Ignore empty lines. The first line contains the headers.",
+      "example": "Input  : 'ID,Nama,Nilai\\n1,Budi,80\\n2,Andi,95'\nOutput : [{'ID': '1', 'Nama': 'Budi', 'Nilai': '80'}, {'ID': '2', 'Nama': 'Andi', 'Nilai': '95'}]",
+      "solution": "def parse_csv(raw_csv):\n    lines = [line for line in raw_csv.strip().splitlines() if line.strip()]\n    headers = lines[0].split(',')\n    hasil = []\n    for line in lines[1:]:\n        values = line.split(',')\n        hasil.append(dict(zip(headers, values)))\n    return hasil",
+      "function_stub": "def parse_csv(raw_csv):\n    pass",
+      "test_cases": [
+        "assert parse_csv('ID,Nama\n1,Budi') == [{'ID': '1', 'Nama': 'Budi'}]",
+        "assert parse_csv('A,B\n10,20\n30,40') == [{'A': '10', 'B': '20'}, {'A': '30', 'B': '40'}]",
+        "assert parse_csv('X,Y\n') == []"
+      ]
+    },
+    {
+      "id": 45,
+      "title": "Binary File I/O",
+      "difficulty": "hard",
+      "topic": "Input/Output",
+      "problem_statement": "Write a function binary_io(filename) that writes the bytes b'\\x48\\x65\\x6c\\x6c\\x6f' to a binary file, reads the file back, decodes the bytes using UTF-8, and returns the decoded string.",
+      "example": "Input  : binary_io('data.bin')\nOutput : Hello",
+      "solution": "def binary_io(filename):\n    data_byte = b'\\x48\\x65\\x6c\\x6c\\x6f'\n    with open(filename, 'wb') as f:\n        f.write(data_byte)\n    with open(filename, 'rb') as f:\n        return f.read().decode('utf-8')",
+      "function_stub": "def binary_io(filename):\n    pass",
+      "test_cases": [
+        "assert binary_io('data.bin') == 'Hello'",
+        "assert binary_io('temp.bin') == 'Hello'",
+        "assert isinstance(binary_io('sample.bin'), str)"
+      ]
+    },
+    {
+      "id": 46,
+      "title": "Traffic Jam Check",
+      "difficulty": "easy",
+      "topic": "Conditionals",
+      "problem_statement": "Given a rainfall level string ('tinggi' or 'rendah'), determine the traffic condition. If rainfall is 'tinggi', return 'macet'. Otherwise, return 'tidak macet'.",
+      "example": "Input  : curah_hujan = 'tinggi'\nOutput : 'macet'\n\nInput  : curah_hujan = 'rendah'\nOutput : 'tidak macet'",
+      "solution": "def traffic_check(curah_hujan):\n    if curah_hujan == 'tinggi':\n        return 'macet'\n    else:\n        return 'tidak macet'",
+      "function_stub": "def traffic_check(curah_hujan):\n    pass",
+      "test_cases": [
+        "assert traffic_check('tinggi') == 'macet'",
+        "assert traffic_check('rendah') == 'tidak macet'",
+        "assert traffic_check('tinggi') != 'tidak macet'",
+        "assert traffic_check('rendah') != 'macet'"
+      ]
+    },
+    {
+      "id": 47,
+      "title": "Geometric Sequence Check",
+      "difficulty": "easy",
+      "topic": "Conditionals",
+      "problem_statement": "Given three integers u1, u2, u3 in increasing order, determine whether they form a geometric sequence. A geometric sequence satisfies u2/u1 == u3/u2 (using integer division). Return 'ya' if it is geometric, 'tidak' otherwise.",
+      "example": "Input  : u1 = 2, u2 = 4, u3 = 8\nOutput : 'ya'\n\nInput  : u1 = 1, u2 = 2, u3 = 4\nOutput : 'ya'",
+      "solution": "def geometric_check(u1, u2, u3):\n    if u2 // u1 == u3 // u2:\n        return 'ya'\n    else:\n        return 'tidak'",
+      "function_stub": "def geometric_check(u1, u2, u3):\n    pass",
+      "test_cases": [
+        "assert geometric_check(2, 4, 8) == 'ya'",
+        "assert geometric_check(1, 2, 4) == 'ya'",
+        "assert geometric_check(1, 2, 5) == 'tidak'",
+        "assert geometric_check(3, 9, 27) == 'ya'"
+      ]
+    },
+    {
+      "id": 48,
+      "title": "Grade Description",
+      "difficulty": "easy",
+      "topic": "Conditionals",
+      "problem_statement": "Given a letter grade (A, B, C, D, E, or T), return its numeric description. A=5, B=4, C=3, D=2, E=1, T=0.",
+      "example": "Input  : grade = 'A'\nOutput : 5\n\nInput  : grade = 'C'\nOutput : 3",
+      "solution": "def grade_description(grade):\n    mapping = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'T': 0}\n    return mapping.get(grade, -1)",
+      "function_stub": "def grade_description(grade):\n    pass",
+      "test_cases": [
+        "assert grade_description('A') == 5",
+        "assert grade_description('C') == 3",
+        "assert grade_description('T') == 0",
+        "assert grade_description('B') == 4"
+      ]
+    },
+    {
+      "id": 49,
+      "title": "Secret Word Decoder",
+      "difficulty": "intermediate",
+      "topic": "Conditionals",
+      "problem_statement": "Given a string s of length >= 20, extract the secret message by taking characters at index 0, 4, 8, and 12. Return the 4-character secret message. If the string is shorter than 20 characters, return an empty string.",
+      "example": "Input  : s = 'abcdefghijklmnopqrstu'\nOutput : 'aeim'\n\nInput  : s = 'short'\nOutput : ''",
+      "solution": "def decode_secret(s):\n    if len(s) >= 20:\n        return s[0] + s[4] + s[8] + s[12]\n    return ''",
+      "function_stub": "def decode_secret(s):\n    pass",
+      "test_cases": [
+        "assert decode_secret('abcdefghijklmnopqrstu') == 'aeim'",
+        "assert decode_secret('short') == ''",
+        "assert len(decode_secret('abcdefghijklmnopqrstu')) == 4",
+        "assert decode_secret('12345678901234567890') == '1591'"
+      ]
+    },
+    {
+      "id": 50,
+      "title": "Quadratic Discriminant",
+      "difficulty": "intermediate",
+      "topic": "Conditionals",
+      "problem_statement": "Given coefficients a, b, c of a quadratic function f(x) = ax^2 + bx + c, determine whether the function has an intersection with the x-axis. The discriminant D = b^2 - 4ac. If D >= 0, return 'memiliki titik potong dengan sumbu-x', otherwise return 'tidak memiliki titik potong dengan sumbu-x'.",
+      "example": "Input  : a = 1.0, b = -3.0, c = 2.0\nOutput : 'memiliki titik potong dengan sumbu-x'\n\nInput  : a = 1.0, b = 0.0, c = 1.0\nOutput : 'tidak memiliki titik potong dengan sumbu-x'",
+      "solution": "def quadratic_discriminant(a, b, c):\n    d = b * b - 4 * a * c\n    if d >= 0:\n        return 'memiliki titik potong dengan sumbu-x'\n    else:\n        return 'tidak memiliki titik potong dengan sumbu-x'",
+      "function_stub": "def quadratic_discriminant(a, b, c):\n    pass",
+      "test_cases": [
+        "assert quadratic_discriminant(1.0, -3.0, 2.0) == 'memiliki titik potong dengan sumbu-x'",
+        "assert quadratic_discriminant(1.0, 0.0, 1.0) == 'tidak memiliki titik potong dengan sumbu-x'",
+        "assert quadratic_discriminant(1.0, 2.0, 1.0) == 'memiliki titik potong dengan sumbu-x'",
+        "assert quadratic_discriminant(2.0, 1.0, 3.0) == 'tidak memiliki titik potong dengan sumbu-x'"
+      ]
+    },
+    {
+      "id": 51,
+      "title": "Bus Pandemic Departure",
+      "difficulty": "intermediate",
+      "topic": "Conditionals",
+      "problem_statement": "A bus will depart only if the number of passengers is between 50% and 75% of its capacity. Given capacity and passengers as integers, return 'berangkat' if the bus departs, 'tidak berangkat' otherwise.",
+      "example": "Input  : capacity = 100, passengers = 60\nOutput : 'berangkat'\n\nInput  : capacity = 100, passengers = 80\nOutput : 'tidak berangkat'",
+      "solution": "def bus_departure(capacity, passengers):\n    ratio = passengers / capacity\n    if 0.50 <= ratio <= 0.75:\n        return 'berangkat'\n    else:\n        return 'tidak berangkat'",
+      "function_stub": "def bus_departure(capacity, passengers):\n    pass",
+      "test_cases": [
+        "assert bus_departure(100, 60) == 'berangkat'",
+        "assert bus_departure(100, 80) == 'tidak berangkat'",
+        "assert bus_departure(100, 50) == 'berangkat'",
+        "assert bus_departure(100, 30) == 'tidak berangkat'"
+      ]
+    },
+    {
+      "id": 52,
+      "title": "Pattern Matching Coordinates",
+      "difficulty": "hard",
+      "topic": "Conditionals",
+      "problem_statement": "Write a function analisis_koordinat(data) that uses Python structural pattern matching (match-case). If data is a tuple (x, y) and x == y, return 'Garis Diagonal'. If data is a tuple (0, y), return 'Berada di Sumbu Y'. If data is a dictionary with key 'tipe' == '3D' and contains keys 'x', 'y', and 'z', return 'Titik 3 Dimensi'. Otherwise return 'Data Tidak Dikenali'.",
+      "example": "Input  : analisis_koordinat((5, 5))\nOutput : Garis Diagonal\n\nInput  : analisis_koordinat((0, 10))\nOutput : Berada di Sumbu Y",
+      "solution": "def analisis_koordinat(data):\n    match data:\n        case (x, y) if x == y:\n            return 'Garis Diagonal'\n        case (0, _):\n            return 'Berada di Sumbu Y'\n        case {'tipe': '3D', 'x': _, 'y': _, 'z': _}:\n            return 'Titik 3 Dimensi'\n        case _:\n            return 'Data Tidak Dikenali'",
+      "function_stub": "def analisis_koordinat(data):\n    pass",
+      "test_cases": [
+        "assert analisis_koordinat((5, 5)) == 'Garis Diagonal'",
+        "assert analisis_koordinat((0, 7)) == 'Berada di Sumbu Y'",
+        "assert analisis_koordinat({'tipe':'3D','x':1,'y':2,'z':3}) == 'Titik 3 Dimensi'"
+      ]
+    },
+    {
+      "id": 53,
+      "title": "Short-Circuit Discount Logic",
+      "difficulty": "hard",
+      "topic": "Conditionals",
+      "problem_statement": "Write a function cek_diskon(stok, lunas, is_vip, total_belanja) that returns True if stock is available AND payment is valid AND (user is VIP OR total_belanja >= 100000). The function must NOT use any if-statement, only boolean expressions.",
+      "example": "Input  : cek_diskon(5, True, False, 150000)\nOutput : True",
+      "solution": "def cek_diskon(stok, lunas, is_vip, total_belanja):\n    return (stok > 0) and lunas and (is_vip or (total_belanja >= 100000))",
+      "function_stub": "def cek_diskon(stok, lunas, is_vip, total_belanja):\n    pass",
+      "test_cases": [
+        "assert cek_diskon(5, True, False, 150000) is True",
+        "assert cek_diskon(2, True, True, 50000) is True",
+        "assert cek_diskon(0, True, True, 200000) is False"
+      ]
+    },
+    {
+      "id": 54,
+      "title": "Dictionary Dispatch Calculator",
+      "difficulty": "hard",
+      "topic": "Conditionals",
+      "problem_statement": "Create a calculator using dictionary dispatch instead of if-elif. Supported operations: 'tambah', 'kurang', 'kali', 'bagi'. Write a function hitung(operasi, a, b) that executes the correct operation using a dictionary of lambda functions. If the operation is invalid, return 'Operasi tidak valid'.",
+      "example": "Input  : hitung('kali', 5, 4)\nOutput : 20\n\nInput  : hitung('modulus', 10, 2)\nOutput : Operasi tidak valid",
+      "solution": "operasi_map = {\n    'tambah': lambda a, b: a + b,\n    'kurang': lambda a, b: a - b,\n    'kali': lambda a, b: a * b,\n    'bagi': lambda a, b: a / b if b != 0 else 'Error: Dibagi nol'\n}\n\ndef hitung(operasi, a, b):\n    return operasi_map.get(operasi, lambda a, b: 'Operasi tidak valid')(a, b)",
+      "function_stub": "def hitung(operasi, a, b):\n    pass",
+      "test_cases": [
+        "assert hitung('kali', 5, 4) == 20",
+        "assert hitung('bagi', 10, 2) == 5",
+        "assert hitung('modulus', 10, 2) == 'Operasi tidak valid'"
+      ]
+    },
+    {
+      "id": 55,
+      "title": "Print Number Range",
+      "difficulty": "easy",
+      "topic": "Loop",
+      "problem_statement": "Given two integers n and m where n < m, return a list of all integers from n to m inclusive. For example, n=1 and m=5 returns [1, 2, 3, 4, 5].",
+      "example": "Input  : n = 1, m = 5\nOutput : [1, 2, 3, 4, 5]\n\nInput  : n = 3, m = 7\nOutput : [3, 4, 5, 6, 7]",
+      "solution": "def number_range(n, m):\n    result = []\n    i = n\n    while i <= m:\n        result.append(i)\n        i += 1\n    return result",
+      "function_stub": "def number_range(n, m):\n    pass",
+      "test_cases": [
+        "assert number_range(1, 5) == [1, 2, 3, 4, 5]",
+        "assert number_range(3, 7) == [3, 4, 5, 6, 7]",
+        "assert number_range(0, 0) == [0]",
+        "assert number_range(-2, 2) == [-2, -1, 0, 1, 2]"
+      ]
+    },
+    {
+      "id": 56,
+      "title": "Rocket Countdown",
+      "difficulty": "easy",
+      "topic": "Loop",
+      "problem_statement": "Write a function countdown() that prints numbers from 5 to 1 using a for loop with range(). After the loop ends, the function should return the string 'Mulai!'.",
+      "example": "Input  : countdown()\nOutput : 5 4 3 2 1 Mulai!",
+      "solution": "def countdown():\n    for i in range(5, 0, -1):\n        print(i)\n    return 'Mulai!'",
+      "function_stub": "def countdown():\n    pass",
+      "test_cases": [
+        "assert countdown() == 'Mulai!'",
+        "assert isinstance(countdown(), str)",
+        "assert countdown().startswith('Mulai')"
+      ]
+    },
+    {
+      "id": 57,
+      "title": "Greeting Guests",
+      "difficulty": "easy",
+      "topic": "Loop",
+      "problem_statement": "Given a list tamu = ['Andi', 'Budi', 'Citra'], write a function sapa_tamu() that returns a list of greeting strings for each guest in the format 'Halo {nama}, selamat datang!'.",
+      "example": "Input  : sapa_tamu()\nOutput : ['Halo Andi, selamat datang!', 'Halo Budi, selamat datang!', 'Halo Citra, selamat datang!']",
+      "solution": "def sapa_tamu():\n    tamu = ['Andi', 'Budi', 'Citra']\n    hasil = []\n    for nama in tamu:\n        hasil.append(f'Halo {nama}, selamat datang!')\n    return hasil",
+      "function_stub": "def sapa_tamu():\n    pass",
+      "test_cases": [
+        "assert sapa_tamu() == ['Halo Andi, selamat datang!', 'Halo Budi, selamat datang!', 'Halo Citra, selamat datang!']",
+        "assert len(sapa_tamu()) == 3",
+        "assert all('Halo' in x for x in sapa_tamu())"
+      ]
+    },
+    {
+      "id": 58,
+      "title": "Sum of First N Even Numbers",
+      "difficulty": "intermediate",
+      "topic": "Loop",
+      "problem_statement": "Given an integer n, return the sum of the first n positive even numbers. For example, if n=5, the first 5 even numbers are 2, 4, 6, 8, 10 and their sum is 30.",
+      "example": "Input  : n = 5\nOutput : 30\n\nInput  : n = 3\nOutput : 12",
+      "solution": "def sum_first_n_even(n):\n    total = 0\n    bilangan = 2\n    i = 0\n    while i < n:\n        total += bilangan\n        bilangan += 2\n        i += 1\n    return total",
+      "function_stub": "def sum_first_n_even(n):\n    pass",
+      "test_cases": [
+        "assert sum_first_n_even(5) == 30",
+        "assert sum_first_n_even(3) == 12",
+        "assert sum_first_n_even(1) == 2",
+        "assert sum_first_n_even(10) == 110"
+      ]
+    },
+    {
+      "id": 59,
+      "title": "Rectangle Area and Perimeter List",
+      "difficulty": "intermediate",
+      "topic": "Loop",
+      "problem_statement": "Given a list of rectangles where each rectangle is [length, width], return a list of tuples (area, perimeter) for each rectangle. Area = length * width, Perimeter = 2 * (length + width).",
+      "example": "Input  : rectangles = [[4, 3], [5, 2]]\nOutput : [(12, 14), (10, 14)]",
+      "solution": "def rect_area_perimeter(rectangles):\n    result = []\n    for rect in rectangles:\n        length, width = rect[0], rect[1]\n        area = length * width\n        perimeter = 2 * (length + width)\n        result.append((area, perimeter))\n    return result",
+      "function_stub": "def rect_area_perimeter(rectangles):\n    pass",
+      "test_cases": [
+        "assert rect_area_perimeter([[4, 3], [5, 2]]) == [(12, 14), (10, 14)]",
+        "assert rect_area_perimeter([[1, 1]]) == [(1, 4)]",
+        "assert rect_area_perimeter([]) == []",
+        "assert rect_area_perimeter([[10, 5]]) == [(50, 30)]"
+      ]
+    },
+    {
+      "id": 60,
+      "title": "Volcano Eruption Count",
+      "difficulty": "intermediate",
+      "topic": "Loop",
+      "problem_statement": "A volcano erupts alternately every x years and y years (x < y). Given n total years, count how many times the volcano erupts. The first eruption is after x years, the second after y more years, the third after x more years, and so on.",
+      "example": "Input  : x = 3, y = 5, n = 20\nOutput : 4\n\nInput  : x = 2, y = 4, n = 10\nOutput : 3",
+      "solution": "def volcano_eruptions(x, y, n):\n    count = 0\n    remaining = n\n    i = 1\n    while remaining >= x:\n        if i % 2 != 0:\n            remaining -= x\n        else:\n            if remaining >= y:\n                remaining -= y\n            else:\n                break\n        count += 1\n        i += 1\n    return count",
+      "function_stub": "def volcano_eruptions(x, y, n):\n    pass",
+      "test_cases": [
+        "assert volcano_eruptions(3, 5, 20) == 4",
+        "assert volcano_eruptions(2, 4, 10) == 3",
+        "assert volcano_eruptions(1, 2, 6) == 4",
+        "assert volcano_eruptions(5, 10, 4) == 0"
+      ]
+    },
+    {
+      "id": 61,
+      "title": "Login Attempt Counter",
+      "difficulty": "hard",
+      "topic": "Loop",
+      "problem_statement": "Given a list of (username, password) tuples, count how many failed attempts occur before the correct login ('admin', 'admin'). Return the count of failed attempts.",
+      "example": "Input  : attempts = [('user', 'pass'), ('admin', 'wrong'), ('admin', 'admin')]\nOutput : 2",
+      "solution": "def login_attempts(attempts):\n    count = 0\n    for username, password in attempts:\n        if username == 'admin' and password == 'admin':\n            break\n        count += 1\n    return count",
+      "function_stub": "def login_attempts(attempts):\n    pass",
+      "test_cases": [
+        "assert login_attempts([('user', 'pass'), ('admin', 'wrong'), ('admin', 'admin')]) == 2",
+        "assert login_attempts([('admin', 'admin')]) == 0",
+        "assert login_attempts([('a', 'b'), ('c', 'd'), ('admin', 'admin')]) == 2",
+        "assert login_attempts([('x', 'y'), ('admin', 'admin')]) == 1"
+      ]
+    },
+    {
+      "id": 62,
+      "title": "Print Integers Pattern",
+      "difficulty": "hard",
+      "topic": "Loop",
+      "problem_statement": "Given an integer n, return a list of integers from 1 to n where each even-indexed position (1-based) is replaced by its negative. For example, n=5: [1, -2, 3, -4, 5].",
+      "example": "Input  : n = 5\nOutput : [1, -2, 3, -4, 5]\n\nInput  : n = 4\nOutput : [1, -2, 3, -4]",
+      "solution": "def integer_pattern(n):\n    result = []\n    for i in range(1, n + 1):\n        if i % 2 == 0:\n            result.append(-i)\n        else:\n            result.append(i)\n    return result",
+      "function_stub": "def integer_pattern(n):\n    pass",
+      "test_cases": [
+        "assert integer_pattern(5) == [1, -2, 3, -4, 5]",
+        "assert integer_pattern(4) == [1, -2, 3, -4]",
+        "assert integer_pattern(1) == [1]",
+        "assert integer_pattern(6) == [1, -2, 3, -4, 5, -6]"
+      ]
+    },
+    {
+      "id": 63,
+      "title": "Weekly Savings",
+      "difficulty": "hard",
+      "topic": "Loop",
+      "problem_statement": "Given an initial savings amount and a weekly addition amount, return how many weeks it takes for the savings to reach or exceed a target amount.",
+      "example": "Input  : initial = 10000, weekly = 5000, target = 30000\nOutput : 4\n\nInput  : initial = 50000, weekly = 10000, target = 100000\nOutput : 5",
+      "solution": "def weeks_to_target(initial, weekly, target):\n    weeks = 0\n    savings = initial\n    while savings < target:\n        savings += weekly\n        weeks += 1\n    return weeks",
+      "function_stub": "def weeks_to_target(initial, weekly, target):\n    pass",
+      "test_cases": [
+        "assert weeks_to_target(10000, 5000, 30000) == 4",
+        "assert weeks_to_target(50000, 10000, 100000) == 5",
+        "assert weeks_to_target(0, 1000, 5000) == 5",
+        "assert weeks_to_target(100, 100, 100) == 0"
+      ]
+    }
+  ]
+}

@@ -251,10 +251,16 @@ function appendToCSV(
   const escape = (s: string) => `"${String(s).replace(/"/g, '""').replace(/\n/g, ' ')}"`;
   const orNull = (s: string) => (s === undefined || s === null || s.trim() === '') ? 'NULL' : escape(s);
 
+  // ── Overall check status ──────────────────────────────────────────────────
+  const isUnitTestOk = unitTestStatus === '' || unitTestStatus === 'passed';
+  const isDiffCheckOk = diffCheckStatus === '' || diffCheckStatus === 'passed';
+  const overallCheckStatus = (isUnitTestOk && isDiffCheckOk) ? 'passed' : 'failed';
+
   const header =
     'session_id;model;topic;difficulty;shot;' +
     'shot_ref_1;shot_ref_2;shot_ref_3;' +
     'no;title;problem_statement;' +
+    'overall_check_status;' +
     'unit_test;unit_test_error;unit_test_reasoning;' +
     'diff_check;diff_check_error;diff_check_reasoning\n';
 
@@ -273,6 +279,7 @@ function appendToCSV(
     String(no),
     escape(title),
     escape(problemStatement),
+    overallCheckStatus,
     orNull(unitTestStatus),
     orNull(unitTestError),
     orNull(unitTestReasoning),
