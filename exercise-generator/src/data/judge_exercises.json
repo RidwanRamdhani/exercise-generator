@@ -1,0 +1,490 @@
+{
+  "judge_exercises": [
+    {
+      "id": 1,
+      "title": "Rectangle Area Calculator",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function hitung_luas_persegi_panjang(lebar, panjang) that calculates the area of a rectangle. The area is calculated by multiplying the width and length of the rectangle.",
+      "example": "Input  : hitung_luas_persegi_panjang(5, 10)\nOutput : 50.0",
+      "solution": "def hitung_luas_persegi_panjang(lebar, panjang):\n    return lebar * panjang",
+      "function_stub": "def hitung_luas_persegi_panjang(lebar, panjang):\n    pass",
+      "test_cases": [
+        "assert hitung_luas_persegi_panjang(5, 10) == 50",
+        "assert hitung_luas_persegi_panjang(0, 10) == 0",
+        "assert hitung_luas_persegi_panjang(7.5, 4) == 30.0",
+        "assert hitung_luas_persegi_panjang(2.5, 2.5) == 6.25"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Celsius to Fahrenheit Converter",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function celsius_to_fahrenheit(celsius) that converts a temperature from Celsius to Fahrenheit. The conversion formula is F = (9/5) * C + 32, where C is the temperature in Celsius and F is the temperature in Fahrenheit.",
+      "example": "Input  : celsius_to_fahrenheit(25)\nOutput : 77.0",
+      "solution": "def celsius_to_fahrenheit(celsius):\n    return (9 / 5) * celsius + 32",
+      "function_stub": "def celsius_to_fahrenheit(celsius):\n    pass",
+      "test_cases": [
+        "assert celsius_to_fahrenheit(0) == 32.0",
+        "assert celsius_to_fahrenheit(100) == 212.0",
+        "assert celsius_to_fahrenheit(25) == 77.0",
+        "assert round(celsius_to_fahrenheit(-40), 10) == -40.0"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Exam Score Validator",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function is_valid_score(score) that determines whether an exam score is valid. A score is considered valid if it is within the range of 0 to 100 inclusive. The function should return True if the score is valid and False otherwise.",
+      "example": "Input  : is_valid_score(85)\nOutput : True",
+      "solution": "def is_valid_score(score):\n    return 0 <= score <= 100",
+      "function_stub": "def is_valid_score(score):\n    pass",
+      "test_cases": [
+        "assert is_valid_score(0) == True",
+        "assert is_valid_score(100) == True",
+        "assert is_valid_score(75) == True",
+        "assert is_valid_score(-1) == False",
+        "assert is_valid_score(101) == False"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Mathematical Function Calculator",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function calculate_f(x) that computes the value of the mathematical function f(x) = (x^3 + 3x) / (x^4 - 3x^2 + 4), where x is a real number. The function should return the calculated value of f(x).",
+      "example": "Input  : calculate_f(2)\nOutput : 0.5",
+      "solution": "def calculate_f(x):\n    return (x**3 + 3*x) / (x**4 - 3*x**2 + 4)",
+      "function_stub": "def calculate_f(x):\n    pass",
+      "test_cases": [
+        "assert calculate_f(0) == 0.0",
+        "assert calculate_f(1) == 2.0",
+        "assert calculate_f(2) == 1.75",
+        "assert calculate_f(-1) == -2.0"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Drachma Coin Converter",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function convert_drachma(drachma) that converts a given amount of drachma coins into equivalent attic talent, mine, and oboli coins. The conversion rules are: 1 drachma = 6 oboli, 100 drachma = 1 mine, and 60 mine = 1 attic talent. The function should return three integers representing the number of attic talent, mine, and oboli coins. Do not use conditional statements.",
+      "example": "Input  : convert_drachma(60123)\nOutput : (10, 1, 138)",
+      "solution": "def convert_drachma(drachma):\n    total_oboli = drachma * 6\n    attic_talent = total_oboli // (60 * 100 * 6)\n    remaining_oboli = total_oboli % (60 * 100 * 6)\n    mine = remaining_oboli // (100 * 6)\n    oboli = remaining_oboli % (100 * 6)\n    return attic_talent, mine, oboli",
+      "function_stub": "def convert_drachma(drachma):\n    pass",
+      "test_cases": [
+        "assert convert_drachma(0) == (0, 0, 0)",
+        "assert convert_drachma(100) == (0, 1, 0)",
+        "assert convert_drachma(6000) == (1, 0, 0)",
+        "assert convert_drachma(60123) == (10, 1, 138)"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Ball Inside Box Validator",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function can_fit_ball(ball_volume, box_volume) that determines whether a ball can be placed inside a cube-shaped box. The input consists of the volume of the ball and the volume of the box. A ball can fit inside the box if its diameter is less than or equal to the side length of the cube. The ball volume formula is V = (4/3) * π * r^3, where r is the radius of the ball.",
+      "example": "Input  : can_fit_ball(4.1887902047863905, 8)\nOutput : True",
+      "solution": "import math\n\ndef can_fit_ball(ball_volume, box_volume):\n    radius = ((3 * ball_volume) / (4 * math.pi)) ** (1 / 3)\n    side = box_volume ** (1 / 3)\n    return (2 * radius) <= side",
+      "function_stub": "import math\n\ndef can_fit_ball(ball_volume, box_volume):\n    pass",
+      "test_cases": [
+        "assert can_fit_ball(4.1887902047863905, 8) == True",
+        "assert can_fit_ball(33.510321638291124, 27) == False",
+        "assert can_fit_ball(0.5235987755982988, 1) == True",
+        "assert can_fit_ball(113.09733552923255, 64) == False"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Guessing Game Winner",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function younger_brother_wins(young_guess, elder_guess) that determines whether the younger brother wins the guessing game. The younger brother wins if the difference between the two secret numbers is a prime number. Both guesses are integers between 1 and 9 inclusive. The function should return True if the younger brother wins and False otherwise.",
+      "example": "Input  : younger_brother_wins(8, 5)\nOutput : True",
+      "solution": "def younger_brother_wins(young_guess, elder_guess):\n    difference = abs(young_guess - elder_guess)\n    primes = [2, 3, 5, 7]\n    return difference in primes",
+      "function_stub": "def younger_brother_wins(young_guess, elder_guess):\n    pass",
+      "test_cases": [
+        "assert younger_brother_wins(8, 5) == True",
+        "assert younger_brother_wins(9, 2) == True",
+        "assert younger_brother_wins(5, 4) == False",
+        "assert younger_brother_wins(7, 7) == False",
+        "assert younger_brother_wins(1, 9) == False"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Reverse Three Digit Number",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function reverse_three_digit(number) that reverses the digit positions of a three-digit positive integer. The input must be treated as an integer, not as separate characters or digits. For example, given input 123, the output should be 321.",
+      "example": "Input  : reverse_three_digit(123)\nOutput : 321",
+      "solution": "def reverse_three_digit(number):\n    hundreds = number // 100\n    tens = (number // 10) % 10\n    ones = number % 10\n    return ones * 100 + tens * 10 + hundreds",
+      "function_stub": "def reverse_three_digit(number):\n    pass",
+      "test_cases": [
+        "assert reverse_three_digit(123) == 321",
+        "assert reverse_three_digit(456) == 654",
+        "assert reverse_three_digit(100) == 1",
+        "assert reverse_three_digit(909) == 909"
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Consecutive Dice Values Checker",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Create a function are_dice_consecutive(d1, d2, d3) that determines whether three six-sided dice have consecutive values. Three numbers are considered consecutive if each adjacent number differs by exactly 1. The function should return True if all dice values are consecutive and False otherwise.",
+      "example": "Input  : are_dice_consecutive(3, 4, 5)\nOutput : True",
+      "solution": "def are_dice_consecutive(d1, d2, d3):\n    values = sorted([d1, d2, d3])\n    return values[1] - values[0] == 1 and values[2] - values[1] == 1",
+      "function_stub": "def are_dice_consecutive(d1, d2, d3):\n    pass",
+      "test_cases": [
+        "assert are_dice_consecutive(3, 4, 5) == True",
+        "assert are_dice_consecutive(6, 4, 5) == True",
+        "assert are_dice_consecutive(1, 3, 5) == False",
+        "assert are_dice_consecutive(2, 2, 3) == False",
+        "assert are_dice_consecutive(1, 2, 6) == False"
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Sum Odd Number Series",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Create a function sum_odd_numbers() that calculates the sum of the odd number series from 1 to 999. The series is 1 + 3 + 5 + 7 + ... + 999. The function should return the total sum as an integer.",
+      "example": "Input  : sum_odd_numbers()\nOutput : 250000",
+      "solution": "def sum_odd_numbers():\n    total = 0\n    for i in range(1, 1000, 2):\n        total += i\n    return total",
+      "function_stub": "def sum_odd_numbers():\n    pass",
+      "test_cases": [
+        "assert sum_odd_numbers() == 250000"
+      ]
+    },
+    {
+      "id": 11,
+      "title": "First and Last Digit Sum",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Create a function sum_first_last_digit(n, d) that calculates the sum of the first and last digit of a positive integer n. The parameter d represents the number of digits in n. For example, if n = 2345 and d = 4, the first digit is 2 and the last digit is 5, so the result is 7.",
+      "example": "Input  : sum_first_last_digit(2345, 4)\nOutput : 7",
+      "solution": "def sum_first_last_digit(n, d):\n    first_digit = n // (10 ** (d - 1))\n    last_digit = n % 10\n    return first_digit + last_digit",
+      "function_stub": "def sum_first_last_digit(n, d):\n    pass",
+      "test_cases": [
+        "assert sum_first_last_digit(2345, 4) == 7",
+        "assert sum_first_last_digit(123, 3) == 4",
+        "assert sum_first_last_digit(9, 1) == 18",
+        "assert sum_first_last_digit(80001, 5) == 9"
+      ]
+    }, 
+    {
+      "id": 12,
+      "title": "Programmer Profit Sharing",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Create a function calculate_profit_sharing(profits) that calculates the earning of each programmer and the additional company assets after completing multiple projects. There are three programmers, and each project's profit is divided equally among them. The remaining amount after division is added to company assets. The function should return the earning of each programmer and the additional company assets. For example, if project profits are [315, 211, 122], each programmer earns 105 + 70 + 40 = 215, and company assets increase by 0 + 1 + 2 = 3.",
+      "example": "Input  : calculate_profit_sharing([315, 211, 122])\nOutput : (215, 3)",
+      "solution": "def calculate_profit_sharing(profits):\n    programmer_earning = 0\n    company_assets = 0\n    \n    for profit in profits:\n        programmer_earning += profit // 3\n        company_assets += profit % 3\n    \n    return programmer_earning, company_assets",
+      "function_stub": "def calculate_profit_sharing(profits):\n    pass",
+      "test_cases": [
+        "assert calculate_profit_sharing([315, 211, 122]) == (215, 3)",
+        "assert calculate_profit_sharing([300]) == (100, 0)",
+        "assert calculate_profit_sharing([1, 2, 3]) == (1, 3)",
+        "assert calculate_profit_sharing([100, 200, 500]) == (265, 5)"
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Harmonic Average Calculator",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Create a function harmonic_average(numbers) that calculates the harmonic average of a list of numbers. The harmonic average is calculated by dividing the number of values (n) by the sum of the reciprocal of each value. The formula is R = n / (1/X1 + 1/X2 + ... + 1/Xn).",
+      "example": "Input  : harmonic_average([2, 4, 8])\nOutput : 3.4285714285714284",
+      "solution": "def harmonic_average(numbers):\n    n = len(numbers)\n    reciprocal_sum = 0\n    \n    for x in numbers:\n        reciprocal_sum += 1 / x\n    \n    return n / reciprocal_sum",
+      "function_stub": "def harmonic_average(numbers):\n    pass",
+      "test_cases": [
+        "assert round(harmonic_average([2, 4, 8]), 10) == 3.4285714286",
+        "assert harmonic_average([5]) == 5.0",
+        "assert round(harmonic_average([1, 1, 1]), 10) == 1.0",
+        "assert round(harmonic_average([3, 6]), 10) == 4.0"
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Total Movie Duration Calculator",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Create a function total_movie_duration(movies) that calculates the total duration of all movies shown in a theater. The input is a list of movie durations, where each duration is represented as a pair of integers [hours, minutes]. The sequence ends with the sentinel value [0, 0], which should not be included in the calculation. The function should return the total duration in hours and minutes.",
+      "example": "Input  : total_movie_duration([[2, 55], [1, 30], [0, 0]])\nOutput : (4, 25)",
+      "solution": "def total_movie_duration(movies):\n    total_minutes = 0\n    \n    for hours, minutes in movies:\n        if hours == 0 and minutes == 0:\n            break\n        total_minutes += hours * 60 + minutes\n    \n    return total_minutes // 60, total_minutes % 60",
+      "function_stub": "def total_movie_duration(movies):\n    pass",
+      "test_cases": [
+        "assert total_movie_duration([[2, 55], [1, 30], [0, 0]]) == (4, 25)",
+        "assert total_movie_duration([[1, 0], [2, 30], [0, 0]]) == (3, 30)",
+        "assert total_movie_duration([[0, 45], [0, 30], [0, 0]]) == (1, 15)",
+        "assert total_movie_duration([[5, 59], [0, 0]]) == (5, 59)"
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Count Read Integers Until Increase",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Create a function count_read_numbers(numbers) that reads up to 10 integers and stops early when the current value is greater than the previously read value. The function should return the number of integers that were read, including the value that caused the stopping condition.",
+      "example": "Input  : count_read_numbers([5, 4, 3, 6, 8])\nOutput : 4",
+      "solution": "def count_read_numbers(numbers):\n    count = 0\n    previous = None\n    \n    for number in numbers[:10]:\n        count += 1\n        if previous is not None and number > previous:\n            break\n        previous = number\n    \n    return count",
+      "function_stub": "def count_read_numbers(numbers):\n    pass",
+      "test_cases": [
+        "assert count_read_numbers([5, 4, 3, 6, 8]) == 4",
+        "assert count_read_numbers([10, 9, 8]) == 3",
+        "assert count_read_numbers([1, 2, 3]) == 2",
+        "assert count_read_numbers([7]) == 1",
+        "assert count_read_numbers([9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 10]) == 10"
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Volcano Eruption Counter",
+      "difficulty": "hard",
+      "topic": "Iterations",
+      "problem_statement": "Create a function count_eruptions(x, y, n) that calculates how many times a volcano erupts within n years. The volcano erupts alternately every x and y years, where x < y. The first recorded eruption happens after x years. The function should return the total number of eruptions within n years. Avoid using loops.",
+      "example": "Input  : count_eruptions(3, 5, 20)\nOutput : 5",
+      "solution": "def count_eruptions(x, y, n):\n    cycle = x + y\n    complete_cycles = n // cycle\n    count = complete_cycles * 2\n    \n    remaining = n % cycle\n    if remaining >= x:\n        count += 1\n    \n    return count",
+      "function_stub": "def count_eruptions(x, y, n):\n    pass",
+      "test_cases": [
+        "assert count_eruptions(3, 5, 20) == 5",
+        "assert count_eruptions(2, 4, 10) == 3",
+        "assert count_eruptions(3, 7, 2) == 0",
+        "assert count_eruptions(1, 2, 10) == 7",
+        "assert count_eruptions(5, 10, 15) == 2"
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Reverse Digits Listing",
+      "difficulty": "hard",
+      "topic": "Iterations",
+      "problem_statement": "Create a function reverse_digits(n) that lists the digits of a given positive integer in reverse order. The digits should be returned as a sequence separated by spaces. The input must be treated as an integer, not as a string.",
+      "example": "Input  : reverse_digits(12345)\nOutput : \"5 4 3 2 1\"",
+      "solution": "def reverse_digits(n):\n    result = []\n    \n    while n > 0:\n        result.append(str(n % 10))\n        n //= 10\n    \n    return ' '.join(result)",
+      "function_stub": "def reverse_digits(n):\n    pass",
+      "test_cases": [
+        "assert reverse_digits(12345) == \"5 4 3 2 1\"",
+        "assert reverse_digits(987) == \"7 8 9\"",
+        "assert reverse_digits(100) == \"0 0 1\"",
+        "assert reverse_digits(5) == \"5\""
+      ]
+    },
+    {
+      "id": 18,
+      "title": "Leibniz Pi Approximation",
+      "difficulty": "hard",
+      "topic": "Iterations",
+      "problem_statement": "Create a function approximate_pi(n) that calculates an approximation of PI using the Leibniz series. The Leibniz formula is PI = 4 * (1 - 1/3 + 1/5 - 1/7 + ...). The parameter n represents the number of terms used in the calculation. The function should return the approximated value of PI as a real number.",
+      "example": "Input  : approximate_pi(100000)\nOutput : 3.1415826535897198",
+      "solution": "def approximate_pi(n):\n    total = 0\n    \n    for i in range(n):\n        total += ((-1) ** i) / (2 * i + 1)\n    \n    return 4 * total",
+      "function_stub": "def approximate_pi(n):\n    pass",
+      "test_cases": [
+        "assert round(approximate_pi(1), 10) == 4.0",
+        "assert round(approximate_pi(2), 10) == 2.6666666667",
+        "assert round(approximate_pi(10), 10) == 3.0418396189",
+        "assert round(approximate_pi(1000), 10) == 3.1405926538"
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Voucher Promotion Checker",
+      "difficulty": "easy",
+      "topic": "Branching",
+      "problem_statement": "Create a function check_voucher_promotion(vouchers) that determines whether a customer receives cashback and/or discount based on five voucher numbers. Cashback is given when the sum of the first three voucher numbers is equal to the sum of the last three voucher numbers. Discount is given when the sum of the first and last voucher numbers is a factor of the sum of the three other vouchers. The function should return a list containing 'cashback' and/or 'discount', or an empty list if no promotion applies.",
+      "example": "Input  : check_voucher_promotion([10, 20, 30, 25, 35])\nOutput : ['cashback']",
+      "solution": "def check_voucher_promotion(vouchers):\n    result = []\n    \n    a, b, c, d, e = vouchers\n    \n    if a + b + c == c + d + e:\n        result.append('cashback')\n    \n    three_other_sum = b + c + d\n    if three_other_sum != 0 and three_other_sum % (a + e) == 0:\n        result.append('discount')\n    \n    return result",
+      "function_stub": "def check_voucher_promotion(vouchers):\n    pass",
+      "test_cases": [
+        "assert check_voucher_promotion([3, 3, 1, 3, 3]) == ['cashback']",
+        "assert check_voucher_promotion([1, 3, 2, 1, 2]) == ['discount']",
+        "assert check_voucher_promotion([10, 20, 30, 40, 50]) == []",
+        "assert check_voucher_promotion([1, 2, 3, 1, 2]) == ['cashback', 'discount']"
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Viking vs Saxon Battle",
+      "difficulty": "easy",
+      "topic": "Branching",
+      "problem_statement": "Create a function battle_result(vikings, saxons) that determines the winner between Vikings and Saxons. Each Viking soldier is worth four Saxon soldiers because Vikings are more daring and have higher spirit. The side with the greater battle value wins. If both sides have equal values, the result is a stand off. The function should return 'Viking won', 'Saxon won', or 'Stand off'.",
+      "example": "Input  : battle_result(10, 30)\nOutput : \"Viking won\"",
+      "solution": "def battle_result(vikings, saxons):\n    viking_power = vikings * 4\n    \n    if viking_power > saxons:\n        return 'Viking won'\n    elif viking_power < saxons:\n        return 'Saxon won'\n    else:\n        return 'Stand off'",
+      "function_stub": "def battle_result(vikings, saxons):\n    pass",
+      "test_cases": [
+        "assert battle_result(10, 30) == 'Viking won'",
+        "assert battle_result(5, 25) == 'Saxon won'",
+        "assert battle_result(10, 40) == 'Stand off'",
+        "assert battle_result(0, 10) == 'Saxon won'"
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Turk vs Mongol Battle",
+      "difficulty": "easy",
+      "topic": "Branching",
+      "problem_statement": "Create a function battle_result(turks, mongols) that determines the winner between the Turk army and Mongol army. Each Turk soldier is equivalent to three Mongol warriors because of their bravery and spirit. The side with the greater battle power wins. If both sides have equal battle power, neither side wins. The function should return 'Turk won', 'Mongol won', or 'neither won'.",
+      "example": "Input  : battle_result(10, 20)\nOutput : \"Turk won\"",
+      "solution": "def battle_result(turks, mongols):\n    turk_power = turks * 3\n    \n    if turk_power > mongols:\n        return 'Turk won'\n    elif turk_power < mongols:\n        return 'Mongol won'\n    else:\n        return 'neither won'",
+      "function_stub": "def battle_result(turks, mongols):\n    pass",
+      "test_cases": [
+        "assert battle_result(10, 20) == 'Turk won'",
+        "assert battle_result(5, 20) == 'Mongol won'",
+        "assert battle_result(3, 15) == 'Mongol won'",
+        "assert battle_result(0, 5) == 'Mongol won'"
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Largest of Three Integers",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Create a function find_largest(a, b, c) that finds the largest value among three integers. The function should return the largest integer from the three given values without using max function.",
+      "example": "Input  : find_largest(10, 25, 15)\nOutput : 25",
+      "solution": "def find_largest(a, b, c):\n    if a >= b and a >= c:\n        return a\n    elif b >= a and b >= c:\n        return b\n    else:\n        return c",
+      "function_stub": "def find_largest(a, b, c):\n    pass",
+      "test_cases": [
+        "assert find_largest(10, 25, 15) == 25",
+        "assert find_largest(-5, -2, -10) == -2",
+        "assert find_largest(7, 7, 3) == 7",
+        "assert find_largest(0, 0, 0) == 0"
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Triangle Type Classifier",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Create a function classify_triangle(a, b, c) that determines the type of triangle based on three positive real numbers representing the side lengths. The function should return one of these categories: 'Equilateral triangle', 'Isosceles triangle', 'Right triangle', 'Acute triangle', 'Obtuse triangle', or 'Not a triangle'. A triangle is valid if the sum of any two sides is greater than the third side.",
+      "example": "Input  : classify_triangle(3, 4, 5)\nOutput : \"Right triangle\"",
+      "solution": "def classify_triangle(a, b, c):\n    sides = sorted([a, b, c])\n    x, y, z = sides\n    \n    if x + y <= z:\n        return 'Not a triangle'\n    \n    if x == y == z:\n        return 'Equilateral triangle'\n    \n    if x * x + y * y == z * z:\n        return 'Right triangle'\n    \n    if x == y or y == z:\n        return 'Isosceles triangle'\n    \n    if x * x + y * y > z * z:\n        return 'Acute triangle'\n    \n    return 'Obtuse triangle'",
+      "function_stub": "def classify_triangle(a, b, c):\n    pass",
+      "test_cases": [
+        "assert classify_triangle(3, 3, 3) == 'Equilateral triangle'",
+        "assert classify_triangle(5, 5, 3) == 'Isosceles triangle'",
+        "assert classify_triangle(3, 4, 5) == 'Right triangle'",
+        "assert classify_triangle(5, 6, 7) == 'Acute triangle'",
+        "assert classify_triangle(2, 3, 4) == 'Obtuse triangle'",
+        "assert classify_triangle(1, 2, 5) == 'Not a triangle'"
+      ]
+    },
+    {
+      "id": 24,
+      "title": "Quadratic Equation Root Validator",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Create a function evaluate_quadratic(a, b, c) that determines the number of valid roots for the quadratic equation ax^2 + bx + c = 0. The function should return 'Has two valid roots' when the equation has two distinct real roots, 'Has one valid root' when it has exactly one real root, and 'Has no root' when it has no real solution.",
+      "example": "Input  : evaluate_quadratic(1, -3, 2)\nOutput : \"Has two valid roots\"",
+      "solution": "def evaluate_quadratic(a, b, c):\n    discriminant = b**2 - 4*a*c\n    \n    if discriminant > 0:\n        return 'Has two valid roots'\n    elif discriminant == 0:\n        return 'Has one valid root'\n    else:\n        return 'Has no root'",
+      "function_stub": "def evaluate_quadratic(a, b, c):\n    pass",
+      "test_cases": [
+        "assert evaluate_quadratic(1, -3, 2) == 'Has two valid roots'",
+        "assert evaluate_quadratic(1, 2, 1) == 'Has one valid root'",
+        "assert evaluate_quadratic(1, 0, 1) == 'Has no root'",
+        "assert evaluate_quadratic(2, 4, 2) == 'Has one valid root'"
+      ]
+    },
+    {
+      "id": 25,
+      "title": "Vowel Counter",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Create a function count_vowels(text) that counts the number of vowels in a sequence of characters. The input string ends with a sentinel character '.' (dot), which should not be counted as part of the text. The vowels are a, e, i, o, and u (case-insensitive). The function should return the total number of vowels found.",
+      "example": "Input  : count_vowels(\"Hello World.\")\nOutput : 3",
+      "solution": "def count_vowels(text):\n    vowels = 'aeiouAEIOU'\n    count = 0\n    \n    for char in text:\n        if char == '.':\n            break\n        if char in vowels:\n            count += 1\n    \n    return count",
+      "function_stub": "def count_vowels(text):\n    pass",
+      "test_cases": [
+        "assert count_vowels(\"Hello World.\") == 3",
+        "assert count_vowels(\"Programming.\") == 3",
+        "assert count_vowels(\"AEIOU.\") == 5",
+        "assert count_vowels(\"xyz.\") == 0",
+        "assert count_vowels(\"a.b.c.\") == 1"
+      ]
+    },
+    {
+      "id": 26,
+      "title": "Count All Odd Dice Throws",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Create a function count_all_odd_throws(throws) that counts how many times all three dice show odd values in a single throw before the game stops. Each throw consists of three six-sided dice values. The game continues until a throw has a total sum of 10, and the final throw that stops the game should not be counted.",
+      "example": "Input  : count_all_odd_throws([[1, 3, 5], [2, 4, 3], [1, 1, 3], [2, 3, 5]])\nOutput : 2",
+      "solution": "def count_all_odd_throws(throws):\n    count = 0\n    \n    for dice in throws:\n        if sum(dice) == 10:\n            break\n        \n        if all(value % 2 == 1 for value in dice):\n            count += 1\n    \n    return count",
+      "function_stub": "def count_all_odd_throws(throws):\n    pass",
+      "test_cases": [
+        "assert count_all_odd_throws([[1, 3, 5], [2, 4, 3], [1, 1, 3], [2, 3, 5]]) == 2",
+        "assert count_all_odd_throws([[1, 1, 1], [2, 3, 5], [4, 4, 2]]) == 1",
+        "assert count_all_odd_throws([[2, 2, 2], [3, 3, 4], [1, 4, 5]]) == 0",
+        "assert count_all_odd_throws([[1, 3, 6], [1, 3, 5], [2, 3, 5]]) == 0"
+      ]
+    },
+    {
+      "id": 27,
+      "title": "First Minimum Position Finder",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Create a function find_min_position(numbers) that reads a sequence of integers and returns the position where the smallest number is found for the first time. The input sequence ends with the sentinel value 0, which should not be considered as data. The position starts from 1, representing how many reads are needed until the smallest value is found.",
+      "example": "Input  : find_min_position([5, 3, 7, 2, 4, 0])\nOutput : 4",
+      "solution": "def find_min_position(numbers):\n    min_value = None\n    min_position = 0\n    position = 0\n    \n    for number in numbers:\n        if number == 0:\n            break\n        \n        position += 1\n        \n        if min_value is None or number < min_value:\n            min_value = number\n            min_position = position\n    \n    return min_position",
+      "function_stub": "def find_min_position(numbers):\n    pass",
+      "test_cases": [
+        "assert find_min_position([5, 3, 7, 2, 4, 0]) == 4",
+        "assert find_min_position([10, 8, 6, 6, 9, 0]) == 3",
+        "assert find_min_position([1, 2, 3, 0]) == 1",
+        "assert find_min_position([9, 7, 5, 3, 1, 0]) == 5"
+      ]
+    },
+    {
+      "id": 28,
+      "title": "Sum Valid Odd-Even Pairs",
+      "difficulty": "intermediate",
+      "topic": "Composite",
+      "problem_statement": "Create a function sum_valid_pairs(pairs) that calculates the sum of integers from pairs of numbers. A pair is valid and included in the summation only when the first number is odd and the second number is even. The input ends with the sentinel pair [0, 0], which should not be included in the calculation. Invalid pairs are ignored.",
+      "example": "Input  : sum_valid_pairs([[1, 2], [2, 1], [3, 5], [7, 4], [0, 0]])\nOutput : 14",
+      "solution": "def sum_valid_pairs(pairs):\n    total = 0\n    \n    for first, second in pairs:\n        if first == 0 and second == 0:\n            break\n        \n        if first % 2 == 1 and second % 2 == 0:\n            total += first + second\n    \n    return total",
+      "function_stub": "def sum_valid_pairs(pairs):\n    pass",
+      "test_cases": [
+        "assert sum_valid_pairs([[1, 2], [2, 1], [3, 5], [7, 4], [0, 0]]) == 14",
+        "assert sum_valid_pairs([[5, 6], [9, 8], [0, 0]]) == 28",
+        "assert sum_valid_pairs([[2, 4], [4, 6], [0, 0]]) == 0",
+        "assert sum_valid_pairs([[1, 0], [3, 2], [0, 0]]) == 6"
+      ]
+    },
+    {
+      "id": 29,
+      "title": "Filter Three Digit Numbers",
+      "difficulty": "intermediate",
+      "topic": "Composite",
+      "problem_statement": "Create a function filter_numbers(x, y, a, b) that prints or returns all three-digit integers from x to y, except numbers that start with digit a or end with digit b. The values x and y satisfy 99 < x <= y < 1000. The function should return a list of integers that satisfy the condition.",
+      "example": "Input  : filter_numbers(120, 130, 1, 5)\nOutput : [120, 121, 122, 123, 124, 126, 127, 128, 129, 130]",
+      "solution": "def filter_numbers(x, y, a, b):\n    result = []\n    \n    for number in range(x, y + 1):\n        first_digit = number // 100\n        last_digit = number % 10\n        \n        if first_digit != a or last_digit != b:\n            result.append(number)\n    \n    return result",
+      "function_stub": "def filter_numbers(x, y, a, b):\n    pass",
+      "test_cases": [
+        "assert filter_numbers(120, 130, 1, 5) == [120, 121, 122, 123, 124, 126, 127, 128, 129, 130]",
+        "assert filter_numbers(200, 210, 2, 0) == [201, 202, 203, 204, 205, 206, 207, 208, 209]",
+        "assert filter_numbers(300, 305, 3, 5) == [300, 301, 302, 303, 304]",
+        "assert filter_numbers(100, 105, 9, 9) == [100, 101, 102, 103, 104, 105]"
+      ]
+    },
+    {
+      "id": 30,
+      "title": "Second Smallest Number Finder",
+      "difficulty": "intermediate",
+      "topic": "Composite",
+      "problem_statement": "Create a function find_second_smallest(numbers) that reads a sequence of integers and finds the second smallest number. The input sequence ends with the sentinel value 0, which should not be considered as data. If there is no second smallest number, the function should return 0.",
+      "example": "Input  : find_second_smallest([5, 3, 8, 2, 0])\nOutput : 3",
+      "solution": "def find_second_smallest(numbers):\n    values = []\n    \n    for number in numbers:\n        if number == 0:\n            break\n        values.append(number)\n    \n    if len(values) < 2:\n        return 0\n    \n    smallest = min(values)\n    second_smallest = None\n    \n    for value in values:\n        if value != smallest and (second_smallest is None or value < second_smallest):\n            second_smallest = value\n    \n    return second_smallest if second_smallest is not None else 0",
+      "function_stub": "def find_second_smallest(numbers):\n    pass",
+      "test_cases": [
+        "assert find_second_smallest([5, 3, 8, 2, 0]) == 3",
+        "assert find_second_smallest([10, 5, 5, 2, 0]) == 5",
+        "assert find_second_smallest([7, 7, 7, 0]) == 0",
+        "assert find_second_smallest([1, 0]) == 0",
+        "assert find_second_smallest([9, 8, 6, 4, 0]) == 6"
+      ]
+    }
+  ]
+}
