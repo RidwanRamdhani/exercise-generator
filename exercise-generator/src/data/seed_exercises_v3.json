@@ -1,0 +1,936 @@
+{
+  "seed_exercises": [
+    {
+  "id": 1,
+      "title": "Simple Data Types",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function hitung_luas_persegi_panjang(lebar, panjang) that computes the area of a rectangle. The area is calculated by multiplying the width and length of the rectangle. The function should return the area as a real number.",
+      "example": "Input  : hitung_luas_persegi_panjang(5.0, 10.0)\nOutput : 50.0",
+      "solution": "def hitung_luas_persegi_panjang(lebar, panjang):\n    return lebar * panjang",
+      "function_stub": "def hitung_luas_persegi_panjang(lebar, panjang):\n    pass",
+      "test_cases": [
+        "assert hitung_luas_persegi_panjang(5.0, 10.0) == 50.0",
+        "assert hitung_luas_persegi_panjang(2.5, 4.0) == 10.0",
+        "assert hitung_luas_persegi_panjang(0, 10.0) == 0.0",
+        "assert hitung_luas_persegi_panjang(7.5, 3.2) == 24.0"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Circle Area Calculator",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function hitung_luas_lingkaran(jari_jari) that computes the area of a circle. Use the constant PI with a value of 3.14 for the calculation. The function should return the area of the circle as a real number. The area is calculated by multiplying PI with the square of the radius.",
+      "example": "Input  : hitung_luas_lingkaran(5.0)\nOutput : 78.5",
+      "solution": "PI = 3.14\n\ndef hitung_luas_lingkaran(jari_jari):\n    return PI * (jari_jari ** 2)",
+      "function_stub": "PI = 3.14\n\ndef hitung_luas_lingkaran(jari_jari):\n    pass",
+      "test_cases": [
+        "assert hitung_luas_lingkaran(5.0) == 78.5",
+        "assert hitung_luas_lingkaran(10.0) == 314.0",
+        "assert hitung_luas_lingkaran(0) == 0.0",
+        "assert hitung_luas_lingkaran(2.5) == 19.625"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Ball Volume Calculator",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function hitung_volume_bola(jari_jari) that computes the volume of a ball. Use the constant PI with a value of 3.14 for the calculation. The volume is calculated using the formula (4/3) * PI * r^3, where r is the radius of the ball. The function should return the volume as a real number.",
+      "example": "Input  : hitung_volume_bola(3.0)\nOutput : 113.03999999999999",
+      "solution": "PI = 3.14\n\ndef hitung_volume_bola(jari_jari):\n    return (4 / 3) * PI * (jari_jari ** 3)",
+      "function_stub": "PI = 3.14\n\ndef hitung_volume_bola(jari_jari):\n    pass",
+      "test_cases": [
+        "assert hitung_volume_bola(3.0) == 113.03999999999999",
+        "assert hitung_volume_bola(5.0) == 523.3333333333334",
+        "assert hitung_volume_bola(0) == 0.0",
+        "assert round(hitung_volume_bola(2.5), 3) == 65.417"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Celsius to Kelvin Converter",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function celsius_to_kelvin(celsius) that converts temperature from Celsius to Kelvin. The conversion formula is K = C + 273, where C is the temperature in Celsius and K is the temperature in Kelvin. The function should return the temperature in Kelvin as a real number.",
+      "example": "Input  : celsius_to_kelvin(25.0)\nOutput : 298.0",
+      "solution": "def celsius_to_kelvin(celsius):\n    return celsius + 273",
+      "function_stub": "def celsius_to_kelvin(celsius):\n    pass",
+      "test_cases": [
+        "assert celsius_to_kelvin(25.0) == 298.0",
+        "assert celsius_to_kelvin(0.0) == 273.0",
+        "assert celsius_to_kelvin(-273.0) == 0.0",
+        "assert celsius_to_kelvin(100.0) == 373.0"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Ball Surface Area Calculator",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function hitung_luas_permukaan_bola(jari_jari) that computes the surface area of a ball. Use the constant PI with a value of 3.14 for the calculation. The surface area is calculated using the formula 4 * PI * r^2, where r is the radius of the ball. The function should return the surface area as a real number.",
+      "example": "Input  : hitung_luas_permukaan_bola(5.0)\nOutput : 314.0",
+      "solution": "PI = 3.14\n\ndef hitung_luas_permukaan_bola(jari_jari):\n    return 4 * PI * (jari_jari ** 2)",
+      "function_stub": "PI = 3.14\n\ndef hitung_luas_permukaan_bola(jari_jari):\n    pass",
+      "test_cases": [
+        "assert hitung_luas_permukaan_bola(5.0) == 314.0",
+        "assert hitung_luas_permukaan_bola(10.0) == 1256.0",
+        "assert hitung_luas_permukaan_bola(0) == 0.0",
+        "assert hitung_luas_permukaan_bola(2.5) == 78.5"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Gram to Diamond Carat Converter",
+      "difficulty": "easy",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function gram_to_carat(gram) that converts weight from gram to diamond carat. The conversion rule is 1 gram equals 5 carats. The function should return the converted weight in carat as a real number.",
+      "example": "Input  : gram_to_carat(10.0)\nOutput : 50.0",
+      "solution": "def gram_to_carat(gram):\n    return gram * 5",
+      "function_stub": "def gram_to_carat(gram):\n    pass",
+      "test_cases": [
+        "assert gram_to_carat(10.0) == 50.0",
+        "assert gram_to_carat(1.0) == 5.0",
+        "assert gram_to_carat(0) == 0.0",
+        "assert gram_to_carat(2.5) == 12.5"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Circle Diameter Calculator",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function hitung_diameter_lingkaran(keliling) that computes the diameter of a circle given its circumference. Use the constant PI with a value of 3.14 for the calculation. The circumference formula is C = PI * d, where d is the diameter. The function should return the diameter as a real number.",
+      "example": "Input  : hitung_diameter_lingkaran(31.4)\nOutput : 10.0",
+      "solution": "PI = 3.14\n\ndef hitung_diameter_lingkaran(keliling):\n    return keliling / PI",
+      "function_stub": "PI = 3.14\n\ndef hitung_diameter_lingkaran(keliling):\n    pass",
+      "test_cases": [
+        "assert hitung_diameter_lingkaran(31.4) == 10.0",
+        "assert hitung_diameter_lingkaran(62.8) == 20.0",
+        "assert hitung_diameter_lingkaran(0) == 0.0",
+        "assert hitung_diameter_lingkaran(15.7) == 5.0"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Mathematical Expression Calculator",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Typess",
+      "problem_statement": "Write a function hitung_y(x) that computes the value of y using the formula y = (x^2 + 1/x)^2. The function should take a real number x as input and return the computed value of y as a real number.",
+      "example": "Input  : hitung_y(2.0)\nOutput : 20.25",
+      "solution": "def hitung_y(x):\n    return (x ** 2 + (1 / x)) ** 2",
+      "function_stub": "def hitung_y(x):\n    pass",
+      "test_cases": [
+        "assert hitung_y(2.0) == 20.25",
+        "assert hitung_y(1.0) == 4.0",
+        "assert round(hitung_y(0.5), 5) == 5.0625",
+        "assert round(hitung_y(3.0), 5) == 87.11111"
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Character Echo",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function print_character(character) that receives a character as input and returns the same character. The function should output the exact same character that was provided.",
+      "example": "Input  : print_character('A')\nOutput : A",
+      "solution": "def print_character(character):\n    return character",
+      "function_stub": "def print_character(character):\n    pass",
+      "test_cases": [
+        "assert print_character('A') == 'A'",
+        "assert print_character('z') == 'z'",
+        "assert print_character('5') == '5'",
+        "assert print_character('#') == '#'"
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Leap Year Checker",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function is_leap_year(year) that determines whether a given positive integer represents a leap year. A year is a leap year if it is evenly divisible by 400, or if it is divisible by 4 but not divisible by 100. The function should return True when the year is a leap year and False otherwise.",
+      "example": "Input  : is_leap_year(2024)\nOutput : True",
+      "solution": "def is_leap_year(year):\n    return year % 400 == 0 or (year % 4 == 0 and year % 100 != 0)",
+      "function_stub": "def is_leap_year(year):\n    pass",
+      "test_cases": [
+        "assert is_leap_year(2024) == True",
+        "assert is_leap_year(2000) == True",
+        "assert is_leap_year(1900) == False",
+        "assert is_leap_year(2023) == False"
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Package Delivery Checker",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function is_deliverable(length, width, height, weight) that determines whether a package can be delivered. A package is deliverable when its volume does not exceed 1 m³ and its weight is not more than 30 kg. The package dimensions are given in centimeters and the weight is given in grams. Convert the volume from cm³ to m³ and weight from grams to kilograms before checking. The function should return True if the package is deliverable and False otherwise. Only arithmetic and logical operations should be used.",
+      "example": "Input  : is_deliverable(100, 100, 100, 30000)\nOutput : True",
+      "solution": "def is_deliverable(length, width, height, weight):\n    volume_m3 = (length * width * height) / 1000000\n    weight_kg = weight / 1000\n    return volume_m3 <= 1 and weight_kg <= 30",
+      "function_stub": "def is_deliverable(length, width, height, weight):\n    pass",
+      "test_cases": [
+        "assert is_deliverable(100, 100, 100, 30000) == True",
+        "assert is_deliverable(200, 100, 100, 10000) == False",
+        "assert is_deliverable(50, 50, 50, 5000) == True",
+        "assert is_deliverable(100, 100, 100, 31000) == False"
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Fraction Calculator",
+      "difficulty": "intermediate",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function kalkulator_pecahan(a, b, c, d) that performs arithmetic operations between two fractional numbers a/b and c/d. The function should calculate addition, subtraction, multiplication, and division of the two fractions. It should return four results, each represented as a pair of integers (numerator and denominator) in the order of addition, subtraction, multiplication, and division.",
+      "example": "Input  : kalkulator_pecahan(1, 2, 1, 3)\nOutput : [(5, 6), (1, 6), (1, 6), (3, 2)]",
+      "solution": "def kalkulator_pecahan(a, b, c, d):\n    tambah = (a * d + c * b, b * d)\n    kurang = (a * d - c * b, b * d)\n    kali = (a * c, b * d)\n    bagi = (a * d, b * c)\n    return [tambah, kurang, kali, bagi]",
+      "function_stub": "def kalkulator_pecahan(a, b, c, d):\n    pass",
+      "test_cases": [
+        "assert kalkulator_pecahan(1, 2, 1, 3) == [(5, 6), (1, 6), (1, 6), (3, 2)]",
+        "assert kalkulator_pecahan(2, 5, 3, 5) == [(25, 25), (-5, 25), (6, 25), (10, 15)]",
+        "assert kalkulator_pecahan(3, 4, 1, 2) == [(10, 8), (2, 8), (3, 8), (6, 4)]",
+        "assert kalkulator_pecahan(5, 6, 2, 3) == [(27, 18), (3, 18), (10, 18), (15, 12)]"
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Cashier Change Calculator",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function hitung_kembalian(uang) that computes the number of bills returned by a cashier for a given change amount. The cash register only contains ten-thousand bills, five-thousand bills, and thousand bills. The function should return the number of bills for each denomination in the order of 10000, 5000, and 1000.",
+      "example": "Input  : hitung_kembalian(17000)\nOutput : (1, 1, 2)",
+      "solution": "def hitung_kembalian(uang):\n    sepuluh_ribu = uang // 10000\n    sisa = uang % 10000\n    lima_ribu = sisa // 5000\n    sisa = sisa % 5000\n    seribu = sisa // 1000\n    return (sepuluh_ribu, lima_ribu, seribu)",
+      "function_stub": "def hitung_kembalian(uang):\n    pass",
+      "test_cases": [
+        "assert hitung_kembalian(17000) == (1, 1, 2)",
+        "assert hitung_kembalian(10000) == (1, 0, 0)",
+        "assert hitung_kembalian(5000) == (0, 1, 0)",
+        "assert hitung_kembalian(23000) == (2, 0, 3)"
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Running Time Converter",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function konversi_waktu(detik) that converts a running time from seconds into hours, minutes, and seconds. The input is a positive integer representing the total running time in seconds. The function should return the time in the format of hours, minutes, and seconds.",
+      "example": "Input  : konversi_waktu(3665)\nOutput : (1, 1, 5)",
+      "solution": "def konversi_waktu(detik):\n    jam = detik // 3600\n    sisa = detik % 3600\n    menit = sisa // 60\n    detik_sisa = sisa % 60\n    return (jam, menit, detik_sisa)",
+      "function_stub": "def konversi_waktu(detik):\n    pass",
+      "test_cases": [
+        "assert konversi_waktu(3665) == (1, 1, 5)",
+        "assert konversi_waktu(3600) == (1, 0, 0)",
+        "assert konversi_waktu(125) == (0, 2, 5)",
+        "assert konversi_waktu(7322) == (2, 2, 2)"
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Vowel Checker",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function is_vowel(character) that determines whether a given lowercase character is a vowel or not. The function should return True when the character is one of the vowels (a, i, u, e, o) and False otherwise.",
+      "example": "Input  : is_vowel('a')\nOutput : True",
+      "solution": "def is_vowel(character):\n    return (character == 'a') or (character == 'i') or (character == 'u') or (character == 'e') or (character == 'o')",
+      "function_stub": "def is_vowel(character):\n    pass",
+      "test_cases": [
+        "assert is_vowel('a') == True",
+        "assert is_vowel('i') == True",
+        "assert is_vowel('z') == False",
+        "assert is_vowel('b') == False"
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Consonant Checker",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function is_consonant(character) that determines whether a given lowercase letter is a consonant or not. The function should return True when the character is a consonant and False when the character is a vowel. The input is guaranteed to be a lowercase letter.",
+      "example": "Input  : is_consonant('b')\nOutput : True",
+      "solution": "def is_consonant(character):\n    return not ((character == 'a') or (character == 'i') or (character == 'u') or (character == 'e') or (character == 'o'))",
+      "function_stub": "def is_consonant(character):\n    pass",
+      "test_cases": [
+        "assert is_consonant('b') == True",
+        "assert is_consonant('z') == True",
+        "assert is_consonant('a') == False",
+        "assert is_consonant('o') == False"
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Guessing Game Winner Checker",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function younger_wins(younger, elder) that determines whether the younger brother wins the guessing game. The younger brother wins when both guessed numbers are the same, or when the difference between the two numbers is either 1 or 5. The function should return True when the younger brother wins and False otherwise.",
+      "example": "Input  : younger_wins(5, 6)\nOutput : True",
+      "solution": "def younger_wins(younger, elder):\n    return (younger == elder) or (abs(younger - elder) == 1) or (abs(younger - elder) == 5)",
+      "function_stub": "def younger_wins(younger, elder):\n    pass",
+      "test_cases": [
+        "assert younger_wins(5, 5) == True",
+        "assert younger_wins(3, 4) == True",
+        "assert younger_wins(2, 7) == True",
+        "assert younger_wins(1, 8) == False"
+      ]
+    },
+    {
+      "id": 18,
+      "title": "Guessing Game Precision Checker",
+      "difficulty": "hard",
+      "topic": "Simple Data Types",
+      "problem_statement": "Write a function younger_wins_precision(younger, elder) that determines whether the younger brother wins the guessing game. The younger brother wins when the difference between the two secret numbers is smaller than 0.0001. The function should return True when the condition is satisfied and False otherwise. The input numbers can be any real numbers.",
+      "example": "Input  : younger_wins_precision(1.00005, 1.00000)\nOutput : True",
+      "solution": "def younger_wins_precision(younger, elder):\n    return abs(younger - elder) < 0.0001",
+      "function_stub": "def younger_wins_precision(younger, elder):\n    pass",
+      "test_cases": [
+        "assert younger_wins_precision(1.00005, 1.00000) == True",
+        "assert younger_wins_precision(10.0, 10.00009) == True",
+        "assert younger_wins_precision(5.0, 4.0001) == False",
+        "assert younger_wins_precision(-3.5, -3.7) == False"
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Sum Numbers from 13 to 1000",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Write a function jumlah_angka() that computes the sum of all integers from 13 to 1000 inclusive. The function does not receive any input and should return the total sum as an integer. Use a for loop to perform the calculation.",
+      "example": "Input  : jumlah_angka()\nOutput : 500422 ",
+      "solution": "def jumlah_angka():\n    total = 0\n    for i in range(13, 1001):\n        total += i\n    return total",
+      "function_stub": "def jumlah_angka():\n    pass",
+      "test_cases": [
+        "assert jumlah_angka() == 500422",
+        "assert isinstance(jumlah_angka(), int)",
+        "assert jumlah_angka() > 0",
+        "assert jumlah_angka() == sum(range(13, 1001))"
+      ]
+    },
+    {
+      "id": 20,
+      "title": "Sum Numbers from 13 to 1000 Using While",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Write a function jumlah_angka_while() that computes the sum of all integers from 13 to 1000 inclusive. The function does not receive any input and should return the total sum as an integer. Use a while loop to perform the calculation.",
+      "example": "Input  : jumlah_angka_while()\nOutput : 500422",
+      "solution": "def jumlah_angka_while():\n    total = 0\n    i = 13\n    while i <= 1000:\n        total += i\n        i += 1\n    return total",
+      "function_stub": "def jumlah_angka_while():\n    pass",
+      "test_cases": [
+        "assert jumlah_angka_while() == 500422",
+        "assert isinstance(jumlah_angka_while(), int)",
+        "assert jumlah_angka_while() > 0",
+        "assert jumlah_angka_while() == sum(range(13, 1001))"
+      ]
+    },
+    {
+      "id": 21,
+      "title": "Sum Fraction Series",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Write a function jumlah_deret(n, m) that computes the sum of the series 4/n + 4/(n+1) + 4/(n+2) + ... + 4/m, where n and m are positive integers and n < m. The function should return the sum of the series as a real number.",
+      "example": "Input  : jumlah_deret(1, 10)\nOutput : 11.435714285714285",
+      "solution": "def jumlah_deret(n, m):\n    total = 0\n    for i in range(n, m + 1):\n        total += 4 / i\n    return total",
+      "function_stub": "def jumlah_deret(n, m):\n    pass",
+      "test_cases": [
+        "assert round(jumlah_deret(1, 10), 10) == 11.4357142857",
+        "assert round(jumlah_deret(1, 2), 10) == 6.0",
+        "assert round(jumlah_deret(5, 5), 10) == 0.8",
+        "assert round(jumlah_deret(10, 20), 10) == 2.3491452991"
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Print Number Series",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Write a function cetak_deret(n, m) that prints or returns a series of integers starting from n to m, where n < m. The function should generate all numbers in increasing order from n until m inclusive.",
+      "example": "Input  : cetak_deret(-4, 4)\nOutput : [-4, -3, -2, -1, 0, 1, 2, 3, 4]",
+      "solution": "def cetak_deret(n, m):\n    hasil = []\n    for i in range(n, m + 1):\n        hasil.append(i)\n    return hasil",
+      "function_stub": "def cetak_deret(n, m):\n    pass",
+      "test_cases": [
+        "assert cetak_deret(-4, 4) == [-4, -3, -2, -1, 0, 1, 2, 3, 4]",
+        "assert cetak_deret(1, 5) == [1, 2, 3, 4, 5]",
+        "assert cetak_deret(10, 12) == [10, 11, 12]",
+        "assert cetak_deret(0, 0) == [0]"
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Multiply Fractions Until Sentinel",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Write a function kali_pecahan(data) that multiplies a sequence of fractions until the sentinel value 0 is encountered. Each positive integer in the input sequence represents the denominator of a fraction with numerator 1. The multiplication is performed as 1/a × 1/b × 1/c and so on until 0 appears. The function should return the resulting fraction value as a real number.",
+      "example": "Input  : kali_pecahan([1, 2, 3, 4, 3, 5, 20, 0])\nOutput : 0.00034722222222222224",
+      "solution": "def kali_pecahan(data):\n    hasil = 1\n    for angka in data:\n        if angka == 0:\n            break\n        hasil *= 1 / angka\n    return hasil",
+      "function_stub": "def kali_pecahan(data):\n    pass",
+      "test_cases": [
+        "assert kali_pecahan([1, 2, 3, 4, 3, 5, 20, 0]) == 1 / (1 * 2 * 3 * 4 * 3 * 5 * 20)",
+        "assert kali_pecahan([2, 5, 0]) == 0.1",
+        "assert kali_pecahan([10, 0]) == 0.1",
+        "assert kali_pecahan([1, 0]) == 1.0"
+      ]
+    },
+    {
+      "id": 24,
+      "title": "Football Goal Reward Checker",
+      "difficulty": "easy",
+      "topic": "Iterations",
+      "problem_statement": "Write a function dapat_hadiah(goals) that determines whether a football player earns a present. The input is a sequence of integers representing the number of goals scored in a month and ends with a sentinel value -1. The player earns a present if the total number of goals is at least 10. The function should return True if the player earns the present and False otherwise.",
+      "example": "Input  : dapat_hadiah([3, 4, 5, -1])\nOutput : True",
+      "solution": "def dapat_hadiah(goals):\n    total = 0\n    for goal in goals:\n        if goal == -1:\n            break\n        total += goal\n    return total >= 10",
+      "function_stub": "def dapat_hadiah(goals):\n    pass",
+      "test_cases": [
+        "assert dapat_hadiah([3, 4, 5, -1]) == True",
+        "assert dapat_hadiah([2, 3, 1, -1]) == False",
+        "assert dapat_hadiah([10, -1]) == True",
+        "assert dapat_hadiah([5, 5, 0, -1]) == True"
+      ]
+    },
+    {
+      "id": 25,
+      "title": "Count Number of Digits",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Write a function hitung_digit(n) that counts the number of digits in a given positive integer n. The function should return the total number of digits of the input number as an integer.",
+      "example": "Input  : hitung_digit(12345)\nOutput : 5",
+      "solution": "def hitung_digit(n):\n    count = 0\n    while n > 0:\n        n //= 10\n        count += 1\n    return count",
+      "function_stub": "def hitung_digit(n):\n    pass",
+      "test_cases": [
+        "assert hitung_digit(12345) == 5",
+        "assert hitung_digit(7) == 1",
+        "assert hitung_digit(1000) == 4",
+        "assert hitung_digit(987654321) == 9"
+      ]
+    },
+    {
+      "id": 26,
+      "title": "Horse Riding Time Calculator",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Write a function hitung_waktu_latihan(times) that computes the total riding time and average riding time of a horse riding practice. The input consists of several positive integers where the first integer represents the number of practices, followed by the time taken for each circuit in seconds. The function should return the total time and average time.",
+      "example": "Input  : hitung_waktu_latihan([3, 60, 70, 80])\nOutput : (210, 70.0)",
+      "solution": "def hitung_waktu_latihan(times):\n    n = times[0]\n    total = 0\n    for i in range(1, n + 1):\n        total += times[i]\n    rata_rata = total / n\n    return (total, rata_rata)",
+      "function_stub": "def hitung_waktu_latihan(times):\n    pass",
+      "test_cases": [
+        "assert hitung_waktu_latihan([3, 60, 70, 80]) == (210, 70.0)",
+        "assert hitung_waktu_latihan([5, 10, 20, 30, 40, 50]) == (150, 30.0)",
+        "assert hitung_waktu_latihan([1, 100]) == (100, 100.0)",
+        "assert hitung_waktu_latihan([4, 15, 25, 35, 45]) == (120, 30.0)"
+      ]
+    },
+    {
+      "id": 27,
+      "title": "Progressive Weekly Savings Calculator",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Write a function hitung_tabungan(total_minggu_pertama, n) that computes the total savings after n weeks. Kakak saves money every Sunday, and each week he saves 2500 rupiahs more than the previous week. The function should return the total amount of money saved after n weeks.",
+      "example": "Input  : hitung_tabungan(10000, 4)\nOutput : 55000",
+      "solution": "def hitung_tabungan(minggu_pertama, n):\n    total = 0\n    tabungan = minggu_pertama\n    for i in range(n):\n        total += tabungan\n        tabungan += 2500\n    return total",
+      "function_stub": "def hitung_tabungan(minggu_pertama, n):\n    pass",
+      "test_cases": [
+        "assert hitung_tabungan(10000, 4) == 55000",
+        "assert hitung_tabungan(2500, 3) == 15000",
+        "assert hitung_tabungan(5000, 1) == 5000",
+        "assert hitung_tabungan(10000, 5) == 75000"
+      ]
+    },
+    {
+      "id": 28,
+      "title": "WhatsApp Message Counter",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Write a function hitung_pesan(data) that counts the total number of text messages and picture messages received within n days. The input consists of an integer n followed by n pairs of integers, where each pair represents the number of text messages and picture messages received in one day. The function should return the total text messages followed by the total picture messages.",
+      "example": "Input  : hitung_pesan([3, 10, 5, 20, 2, 15, 4])\nOutput : (45, 11)",
+      "solution": "def hitung_pesan(data):\n    n = data[0]\n    total_text = 0\n    total_picture = 0\n    index = 1\n    for i in range(n):\n        total_text += data[index]\n        total_picture += data[index + 1]\n        index += 2\n    return (total_text, total_picture)",
+      "function_stub": "def hitung_pesan(data):\n    pass",
+      "test_cases": [
+        "assert hitung_pesan([3, 10, 5, 20, 2, 15, 4]) == (45, 11)",
+        "assert hitung_pesan([2, 5, 3, 7, 4]) == (12, 7)",
+        "assert hitung_pesan([1, 100, 50]) == (100, 50)",
+        "assert hitung_pesan([4, 1, 1, 2, 2, 3, 3, 4, 4]) == (10, 10)"
+      ]
+    },
+    {
+      "id": 29,
+      "title": "Rectangle Area and Circumference Calculator",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Write a function hitung_persegi_panjang(data) that computes the area and circumference of n rectangles. The input consists of an integer n followed by n pairs of integers representing the length and width of each rectangle. The function should return a list containing the area and circumference of each rectangle.",
+      "example": "Input  : hitung_persegi_panjang([2, 5, 3, 10, 4])\nOutput : [(15, 16), (40, 28)]",
+      "solution": "def hitung_persegi_panjang(data):\n    n = data[0]\n    hasil = []\n    index = 1\n    for i in range(n):\n        panjang = data[index]\n        lebar = data[index + 1]\n        luas = panjang * lebar\n        keliling = 2 * (panjang + lebar)\n        hasil.append((luas, keliling))\n        index += 2\n    return hasil",
+      "function_stub": "def hitung_persegi_panjang(data):\n    pass",
+      "test_cases": [
+        "assert hitung_persegi_panjang([2, 5, 3, 10, 4]) == [(15, 16), (40, 28)]",
+        "assert hitung_persegi_panjang([1, 7, 2]) == [(14, 18)]",
+        "assert hitung_persegi_panjang([3, 1, 1, 2, 2, 3, 3]) == [(1, 4), (4, 8), (9, 12)]",
+        "assert hitung_persegi_panjang([0]) == []"
+      ]
+    },
+    {
+      "id": 30,
+      "title": "Sum Numbers Until Threshold",
+      "difficulty": "intermediate",
+      "topic": "Iterations",
+      "problem_statement": "Write a function hitung_jumlah_sampai_batas(data) that continually reads integers and computes their total sum until the total sum becomes greater than 100. The function should return the final sum and the number of integers read from the input.",
+      "example": "Input  : hitung_jumlah_sampai_batas([20, 30, 40, 15])\nOutput : (105, 4)",
+      "solution": "def hitung_jumlah_sampai_batas(data):\n    total = 0\n    count = 0\n    for angka in data:\n        total += angka\n        count += 1\n        if total > 100:\n            break\n    return (total, count)",
+      "function_stub": "def hitung_jumlah_sampai_batas(data):\n    pass",
+      "test_cases": [
+        "assert hitung_jumlah_sampai_batas([20, 30, 40, 15]) == (105, 4)",
+        "assert hitung_jumlah_sampai_batas([50, 60]) == (110, 2)",
+        "assert hitung_jumlah_sampai_batas([10, 20, 30, 40, 50]) == (150, 5)",
+        "assert hitung_jumlah_sampai_batas([101, 5, 10]) == (101, 1)"
+      ]
+    },
+    {
+      "id": 31,
+      "title": "Consecutive Number Checker",
+      "difficulty": "hard",
+      "topic": "Iterationsg",
+      "problem_statement": "Write a function is_consecutive_number(n) that determines whether a positive integer is a consecutive number. A number is considered consecutive when every pair of neighboring digits has a difference exactly equal to 1. The function should return True if the number is consecutive and False otherwise.",
+      "example": "Input  : is_consecutive_number(1234)\nOutput : True",
+      "solution": "def is_consecutive_number(n):\n    digits = str(n)\n    for i in range(len(digits) - 1):\n        if abs(int(digits[i]) - int(digits[i + 1])) != 1:\n            return False\n    return True",
+      "function_stub": "def is_consecutive_number(n):\n    pass",
+      "test_cases": [
+        "assert is_consecutive_number(1234) == True",
+        "assert is_consecutive_number(9876) == True",
+        "assert is_consecutive_number(1357) == False",
+        "assert is_consecutive_number(1235) == False"
+      ]
+    },
+    {
+      "id": 32,
+      "title": "Two Digit Guessing Game",
+      "difficulty": "hard",
+      "topic": "Iterations",
+      "problem_statement": "Write a function jumlah_percobaan_rahasia(secret, guesses) that determines how many trials are needed in a guessing game. The first player chooses a secret two-digit number. The second player repeatedly guesses either one digit or both digits of the number. The guessing stops when the guess correctly matches at least one digit of the secret number. The function should return the number of trials until and including the correct guess.",
+      "example": "Input  : jumlah_percobaan_rahasia(47, [12, 35, 8, 9, 74])\nOutput : 5",
+      "solution": "def jumlah_percobaan_rahasia(secret, guesses):\n    secret_digits = str(secret)\n    count = 0\n    for guess in guesses:\n        count += 1\n        guess_digits = str(guess)\n        if any(digit in secret_digits for digit in guess_digits):\n            return count\n    return count",
+      "function_stub": "def jumlah_percobaan_rahasia(secret, guesses):\n    pass",
+      "test_cases": [
+        "assert jumlah_percobaan_rahasia(47, [12, 35, 8, 9, 74]) == 5",
+        "assert jumlah_percobaan_rahasia(56, [12, 34, 5]) == 3",
+        "assert jumlah_percobaan_rahasia(23, [45, 67, 89, 12]) == 4",
+        "assert jumlah_percobaan_rahasia(90, [10]) == 1"
+      ]
+    },
+    {
+      "id": 33,
+      "title": "Number Factor Checker",
+      "difficulty": "hard",
+      "topic": "Iterations",
+      "problem_statement": "Write a function cek_faktor(n) that checks possible factors of a positive integer N. A factor is a number that can divide N evenly without any remainder. The function should return a list of pairs containing an integer d and a boolean value. The boolean value should be True when d is a factor of N and False otherwise. Check all numbers from 1 until N.",
+      "example": "Input  : cek_faktor(15)\nOutput : [(1, True), (2, False), (3, True), (4, False), (5, True), (6, False), (7, False), (8, False), (9, False), (10, False), (11, False), (12, False), (13, False), (14, False), (15, True)]",
+      "solution": "def cek_faktor(n):\n    hasil = []\n    for d in range(1, n + 1):\n        hasil.append((d, n % d == 0))\n    return hasil",
+      "function_stub": "def cek_faktor(n):\n    pass",
+      "test_cases": [
+        "assert cek_faktor(5) == [(1, True), (2, False), (3, False), (4, False), (5, True)]",
+        "assert cek_faktor(10) == [(1, True), (2, True), (3, False), (4, False), (5, True), (6, False), (7, False), (8, False), (9, False), (10, True)]",
+        "assert cek_faktor(1) == [(1, True)]",
+        "assert cek_faktor(15)[2] == (3, True)"
+      ]
+    },
+    {
+      "id": 34,
+      "title": "Cube Side Length Calculator",
+      "difficulty": "hard",
+      "topic": "Iterations",
+      "problem_statement": "Write a function hitung_sisi_kubus(volume) that computes the length of a cube side when given the cube volume. The cube side length can be calculated using the formula side = cube root of volume. The function should return the side length as a real number accurate to 7 decimal points.",
+      "example": "Input  : hitung_sisi_kubus(27.0)\nOutput : 3.0000000",
+      "solution": "def hitung_sisi_kubus(volume):\n    return volume ** (1 / 3)",
+      "function_stub": "def hitung_sisi_kubus(volume):\n    pass",
+      "test_cases": [
+        "assert round(hitung_sisi_kubus(27.0), 7) == 3.0000000",
+        "assert round(hitung_sisi_kubus(8.0), 7) == 2.0000000",
+        "assert round(hitung_sisi_kubus(1.0), 7) == 1.0000000",
+        "assert round(hitung_sisi_kubus(125.0), 7) == 5.0000000"
+      ]
+    },
+    {
+      "id": 35,
+      "title": "Monte Carlo Pi Estimation",
+      "difficulty": "hard",
+      "topic": "Iterationsg",
+      "problem_statement": "Write a function hitung_pi(observations) that computes the value of the constant π using observations from a circle inside a square. Each observation contains two integers: the number of balls inside the circle only and the total number of balls inside the square. The ratio of the circle area to the square area can be used to estimate π using the formula π = 4 × (balls_inside_circle / balls_inside_square). The function should return the estimated value of π with precision up to 5 decimal digits.",
+      "example": "Input  : hitung_pi([(7850, 10000)])\nOutput : 3.14000",
+      "solution": "def hitung_pi(observations):\n    total_circle = 0\n    total_square = 0\n    for circle, square in observations:\n        total_circle += circle\n        total_square += square\n    return 4 * (total_circle / total_square)",
+      "function_stub": "def hitung_pi(observations):\n    pass",
+      "test_cases": [
+        "assert round(hitung_pi([(7850, 10000)]), 5) == 3.14",
+        "assert round(hitung_pi([(2500, 10000)]), 5) == 1.0",
+        "assert round(hitung_pi([(31400, 100000)]), 5) == 1.256",
+        "assert round(hitung_pi([(7850, 10000), (15700, 20000)]), 5) == 3.14"
+      ]
+    },
+    {
+      "id": 36,
+      "title": "Count Even Numbers Until Sentinel",
+      "difficulty": "hard",
+      "topic": "Iterations",
+      "problem_statement": "Write a function hitung_bilangan_genap(data) that counts how many even integers appear in the input sequence. The input consists of integer numbers and ends with the sentinel value 0. The sentinel value 0 is not included in the computation. The function should return the number of even integers found before the sentinel.",
+      "example": "Input  : hitung_bilangan_genap([3, 4, 7, 10, 5, 0])\nOutput : 2",
+      "solution": "def hitung_bilangan_genap(data):\n    count = 0\n    for angka in data:\n        if angka == 0:\n            break\n        if angka % 2 == 0:\n            count += 1\n    return count",
+      "function_stub": "def hitung_bilangan_genap(data):\n    pass",
+      "test_cases": [
+        "assert hitung_bilangan_genap([3, 4, 7, 10, 5, 0]) == 2",
+        "assert hitung_bilangan_genap([2, 4, 6, 0]) == 3",
+        "assert hitung_bilangan_genap([1, 3, 5, 0]) == 0",
+        "assert hitung_bilangan_genap([0]) == 0"
+      ]
+    },
+    {
+      "id": 37,
+      "title": "Class President Election",
+      "difficulty": "easy",
+      "topic": "Branching",
+      "problem_statement": "Write a function pilih_presiden(jumlah_siswa, suara_a, suara_b) that determines the winner of a class president election. A candidate wins only if they receive at least 60% of the total number of students in the class. If only candidate A satisfies the requirement, return \"Candidate A won\". If only candidate B satisfies the requirement, return \"Candidate B won\". Otherwise, return \"No winner\".",
+      "example": "Input  : pilih_presiden(30, 18, 12)\nOutput : 'Candidate A won'",
+      "solution": "def pilih_presiden(jumlah_siswa, suara_a, suara_b):\n    batas = 0.6 * jumlah_siswa\n    a_menang = suara_a >= batas\n    b_menang = suara_b >= batas\n\n    if a_menang and not b_menang:\n        return 'Candidate A won'\n    elif b_menang and not a_menang:\n        return 'Candidate B won'\n    else:\n        return 'No winner'",
+      "function_stub": "def pilih_presiden(jumlah_siswa, suara_a, suara_b):\n    pass",
+      "test_cases": [
+        "assert pilih_presiden(30, 18, 12) == 'Candidate A won'",
+        "assert pilih_presiden(25, 10, 15) == 'Candidate B won'",
+        "assert pilih_presiden(40, 20, 18) == 'No winner'",
+        "assert pilih_presiden(10, 6, 6) == 'No winner'"
+      ]
+    },
+    {
+      "id": 38,
+      "title": "Bus Departure Decision",
+      "difficulty": "easy",
+      "topic": "Branching",
+      "problem_statement": "Write a function status_keberangkatan(kapasitas, penumpang) that determines whether an intercity bus will depart or be cancelled. The bus departs only when the number of passengers is between 50% and 75% of the bus capacity, inclusive. The function should return \"Depart\" if the condition is satisfied and \"Cancelled\" otherwise.",
+      "example": "Input  : status_keberangkatan(40, 25)\nOutput : 'Depart'",
+      "solution": "def status_keberangkatan(kapasitas, penumpang):\n    if 0.5 * kapasitas <= penumpang <= 0.75 * kapasitas:\n        return 'Depart'\n    return 'Cancelled'",
+      "function_stub": "def status_keberangkatan(kapasitas, penumpang):\n    pass",
+      "test_cases": [
+        "assert status_keberangkatan(40, 25) == 'Depart'",
+        "assert status_keberangkatan(40, 20) == 'Depart'",
+        "assert status_keberangkatan(40, 30) == 'Depart'",
+        "assert status_keberangkatan(40, 19) == 'Cancelled'",
+        "assert status_keberangkatan(40, 31) == 'Cancelled'"
+      ]
+    },
+    {
+      "id": 39,
+      "title": "YouTube Monetization Checker",
+      "difficulty": "easy",
+      "topic": "Branching",
+      "problem_statement": "Write a function cek_monetisasi(subscribers, viewing_hours) that determines whether a YouTube channel can be monetized. A channel is monetizable only if it has at least 1000 subscribers and at least 4000 viewing hours in the last 12 months. The function should return \"monetizable\" if both requirements are satisfied and \"unmonetizable\" otherwise.",
+      "example": "Input  : cek_monetisasi(1500, 4500)\nOutput : 'monetizable'",
+      "solution": "def cek_monetisasi(subscribers, viewing_hours):\n    if subscribers >= 1000 and viewing_hours >= 4000:\n        return 'monetizable'\n    return 'unmonetizable'",
+      "function_stub": "def cek_monetisasi(subscribers, viewing_hours):\n    pass",
+      "test_cases": [
+        "assert cek_monetisasi(1500, 4500) == 'monetizable'",
+        "assert cek_monetisasi(1000, 4000) == 'monetizable'",
+        "assert cek_monetisasi(999, 5000) == 'unmonetizable'",
+        "assert cek_monetisasi(2000, 3999) == 'unmonetizable'"
+      ]
+    },
+    {
+      "id": 40,
+      "title": "Customer Review Rating",
+      "difficulty": "easy",
+      "topic": "Branching",
+      "problem_statement": "Write a function kategori_review(r1, r2, r3, r4) that determines the overall customer review category based on four review scores. Each review score is an integer from 1 to 4. If the average score is at least 3.50, return \"good\". If the average score is at most 1.50, return \"bad\". Otherwise, return \"average\".",
+      "example": "Input  : kategori_review(4, 4, 3, 4)\nOutput : 'good'",
+      "solution": "def kategori_review(r1, r2, r3, r4):\n    rata_rata = (r1 + r2 + r3 + r4) / 4\n    if rata_rata >= 3.5:\n        return 'good'\n    elif rata_rata <= 1.5:\n        return 'bad'\n    else:\n        return 'average'",
+      "function_stub": "def kategori_review(r1, r2, r3, r4):\n    pass",
+      "test_cases": [
+        "assert kategori_review(4, 4, 3, 4) == 'good'",
+        "assert kategori_review(1, 1, 2, 2) == 'bad'",
+        "assert kategori_review(2, 3, 2, 3) == 'average'",
+        "assert kategori_review(3, 4, 3, 4) == 'good'"
+      ]
+    },
+    {
+      "id": 41,
+      "title": "Sum Verification",
+      "difficulty": "easy",
+      "topic": "Branching",
+      "problem_statement": "Write a function cek_penjumlahan(a, b, c, hasil) that determines whether Adek's calculation is correct. The first three integers are the numbers to be added, and the fourth integer is Adek's answer. Return \"correct\" if the answer matches the sum of the first three integers; otherwise, return \"wrong\".",
+      "example": "Input  : cek_penjumlahan(5, 7, 8, 20)\nOutput : 'correct'",
+      "solution": "def cek_penjumlahan(a, b, c, hasil):\n    if a + b + c == hasil:\n        return 'correct'\n    return 'wrong'",
+      "function_stub": "def cek_penjumlahan(a, b, c, hasil):\n    pass",
+      "test_cases": [
+        "assert cek_penjumlahan(5, 7, 8, 20) == 'correct'",
+        "assert cek_penjumlahan(1, 2, 3, 7) == 'wrong'",
+        "assert cek_penjumlahan(10, 20, 30, 60) == 'correct'",
+        "assert cek_penjumlahan(-1, 5, 2, 6) == 'correct'"
+      ]
+    },
+    {
+      "id": 42,
+      "title": "Chicken Porridge Price Calculator",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Write a function hitung_harga_bubur(ayam_suwir, cakwe, ati_ayam, telur) that computes the total price of a chicken porridge order. The base price is Rp 9000. Add Rp 5000 if ayam_suwir is True, Rp 3000 if cakwe is True, Rp 6000 if ati_ayam is True, and Rp 5000 if telur is True. Return the total price as an integer.",
+      "example": "Input  : hitung_harga_bubur(True, False, True, True)\nOutput : 25000",
+      "solution": "def hitung_harga_bubur(ayam_suwir, cakwe, ati_ayam, telur):\n    total = 9000\n    if ayam_suwir:\n        total += 5000\n    if cakwe:\n        total += 3000\n    if ati_ayam:\n        total += 6000\n    if telur:\n        total += 5000\n    return total",
+      "function_stub": "def hitung_harga_bubur(ayam_suwir, cakwe, ati_ayam, telur):\n    pass",
+      "test_cases": [
+        "assert hitung_harga_bubur(False, False, False, False) == 9000",
+        "assert hitung_harga_bubur(True, False, False, False) == 14000",
+        "assert hitung_harga_bubur(True, True, True, True) == 28000",
+        "assert hitung_harga_bubur(False, True, True, False) == 18000"
+      ]
+    },
+    {
+      "id": 43,
+      "title": "Sort Three Numbers Descending",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Write a function urut_menurun(a, b, c) that returns the three input integers ordered from the largest to the smallest.",
+      "example": "Input  : urut_menurun(5, 2, 8)\nOutput : (8, 5, 2)",
+      "solution": "def urut_menurun(a, b, c):\n    data = [a, b, c]\n    data.sort(reverse=True)\n    return tuple(data)",
+      "function_stub": "def urut_menurun(a, b, c):\n    pass",
+      "test_cases": [
+        "assert urut_menurun(5, 2, 8) == (8, 5, 2)",
+        "assert urut_menurun(1, 3, 2) == (3, 2, 1)",
+        "assert urut_menurun(-1, 5, 0) == (5, 0, -1)",
+        "assert urut_menurun(7, 7, 3) == (7, 7, 3)"
+      ]
+    },
+    {
+      "id": 44,
+      "title": "Object Volume Calculator",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Write a function hitung_volume(objek, x, y, z) that computes the volume of an object based on the given lowercase letter. If objek is 'b', the three numbers represent the sides of a block. If objek is 'c', the three numbers represent the height, short diameter, and long diameter of an elliptical cylinder. If objek is 'e', the three numbers represent the diameters of an ellipsoid. Use π = 3.14. Return the computed volume as a float. If the object type is unknown, return 'unknown object'.",
+      "example": "Input  : hitung_volume('b', 2, 3, 4)\nOutput : 24",
+      "solution": "def hitung_volume(objek, x, y, z):\n    pi = 3.14\n    if objek == 'b':\n        return x * y * z\n    elif objek == 'c':\n        return pi * (y / 2) * (z / 2) * x\n    elif objek == 'e':\n        return (4 / 3) * pi * (x / 2) * (y / 2) * (z / 2)\n    else:\n        return 'unknown object'",
+      "function_stub": "def hitung_volume(objek, x, y, z):\n    pass",
+      "test_cases": [
+        "assert hitung_volume('b', 2, 3, 4) == 24",
+        "assert abs(hitung_volume('c', 10, 4, 6) - 188.4) < 1e-6",
+        "assert abs(hitung_volume('e', 2, 4, 6) - 25.12) < 1e-6",
+        "assert hitung_volume('x', 1, 2, 3) == 'unknown object'"
+      ]
+    },
+    {
+      "id": 45,
+      "title": "Simple Calculator",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Write a function hitung_operasi(operator, a, b) that performs a calculation based on the given operator. If operator is '+', return the sum of the two numbers. If '-', return the result of subtracting the second number from the first. If '*', return their product. If '/', return the result of dividing the first number by the second. Otherwise, return 'unknown operation'.",
+      "example": "Input  : hitung_operasi('*', 4, 2.5)\nOutput : 10.0",
+      "solution": "def hitung_operasi(operator, a, b):\n    if operator == '+':\n        return a + b\n    elif operator == '-':\n        return a - b\n    elif operator == '*':\n        return a * b\n    elif operator == '/':\n        return a / b\n    else:\n        return 'unknown operation'",
+      "function_stub": "def hitung_operasi(operator, a, b):\n    pass",
+      "test_cases": [
+        "assert hitung_operasi('+', 3, 5) == 8",
+        "assert hitung_operasi('-', 10, 4) == 6",
+        "assert hitung_operasi('*', 2.5, 4) == 10.0",
+        "assert hitung_operasi('/', 9, 3) == 3.0",
+        "assert hitung_operasi('^', 2, 3) == 'unknown operation'"
+      ]
+    },
+    {
+      "id": 46,
+      "title": "Conditional Number Transformations",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Write a function transformasi_angka(a, b, c, d, e) that performs the following operations in order: (1) If the third number is a multiple of 5, swap it with the fifth number. (2) If the second number is odd, rotate all numbers one position to the left. (3) If the fourth number is greater than 10, swap the first and fifth numbers. (4) If the first number is less than 1000, shift all numbers one position to the right, then multiply the first number by 2. Return the resulting five integers as a tuple.",
+      "example": "Input  : transformasi_angka(1, 3, 10, 12, 5)\nOutput : (10, 5, 3, 1, 12)",
+      "solution": "def transformasi_angka(a, b, c, d, e):\n    if c % 5 == 0:\n        c, e = e, c\n\n    if b % 2 == 1:\n        a, b, c, d, e = b, c, d, e, a\n\n    if d > 10:\n        a, e = e, a\n\n    if a < 1000:\n        a, b, c, d, e = e, a, b, c, d\n        a *= 2\n\n    return (a, b, c, d, e)",
+      "function_stub": "def transformasi_angka(a, b, c, d, e):\n    pass",
+      "test_cases": [
+        "assert transformasi_angka(1, 3, 10, 12, 5) == (2, 3, 5, 12, 10)",
+        "assert transformasi_angka(1001, 2, 6, 9, 8) == (1001, 2, 6, 9, 8)",
+        "assert transformasi_angka(5, 4, 15, 8, 20) == (30, 5, 4, 20, 8)",
+        "assert transformasi_angka(7, 1, 2, 5, 9) == (14, 1, 2, 5, 9)"
+      ]
+    },
+    {
+      "id": 47,
+      "title": "BMI Category",
+      "difficulty": "intermediate",
+      "topic": "Branching",
+      "problem_statement": "Write a function kategori_bmi(berat_gram, tinggi_cm) that calculates the Body Mass Index (BMI). Convert the weight from grams to kilograms and the height from centimeters to meters before computing BMI = weight / (height ** 2). Return 'Underweight' if BMI < 18.5, 'Normal' if 18.5 <= BMI <= 25, 'Overweight' if 25 < BMI < 40, and 'Obese' if BMI >= 40.",
+      "example": "Input  : kategori_bmi(70000, 175)\nOutput : 'Normal'",
+      "solution": "def kategori_bmi(berat_gram, tinggi_cm):\n    berat = berat_gram / 1000\n    tinggi = tinggi_cm / 100\n    bmi = berat / (tinggi ** 2)\n\n    if bmi >= 40:\n        return 'Obese'\n    elif bmi > 25:\n        return 'Overweight'\n    elif bmi >= 18.5:\n        return 'Normal'\n    else:\n        return 'Underweight'",
+      "function_stub": "def kategori_bmi(berat_gram, tinggi_cm):\n    pass",
+      "test_cases": [
+        "assert kategori_bmi(70000, 175) == 'Normal'",
+        "assert kategori_bmi(45000, 170) == 'Underweight'",
+        "assert kategori_bmi(90000, 170) == 'Overweight'",
+        "assert kategori_bmi(130000, 170) == 'Obese'"
+      ]
+    },
+    {
+      "id": 48,
+      "title": "Planet X Prime",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Write a function prima_planet_x(n) that determines whether a positive integer is a prime number on Planet X. On Planet X, a prime number is defined as a number with exactly three positive factors. Return True if the number is a Planet X prime, otherwise return False.",
+      "example": "Input  : prima_planet_x(9)\nOutput : True",
+      "solution": "def prima_planet_x(n):\n    if n < 4:\n        return False\n    faktor = 0\n    for i in range(1, n + 1):\n        if n % i == 0:\n            faktor += 1\n    return faktor == 3",
+      "function_stub": "def prima_planet_x(n):\n    pass",
+      "test_cases": [
+        "assert prima_planet_x(4) == True",
+        "assert prima_planet_x(9) == True",
+        "assert prima_planet_x(16) == False",
+        "assert prima_planet_x(7) == False",
+        "assert prima_planet_x(1) == False"
+      ]
+    },
+    {
+      "id": 49,
+      "title": "Count Letters Except 'a' and 'i'",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Write a function hitung_huruf(data) that counts how many characters in the input sequence are not the letters 'a' or 'i'. The input is a sequence of characters ending with the sentinel '.'. The sentinel is not included in the count. Return the total count.",
+      "example": "Input  : hitung_huruf('belajar.')\nOutput : 5",
+      "solution": "def hitung_huruf(data):\n    jumlah = 0\n    for ch in data:\n        if ch == '.':\n            break\n        if ch != 'a' and ch != 'i':\n            jumlah += 1\n    return jumlah",
+      "function_stub": "def hitung_huruf(data):\n    pass",
+      "test_cases": [
+        "assert hitung_huruf('belajar.') == 5",
+        "assert hitung_huruf('aiai.') == 0",
+        "assert hitung_huruf('python.') == 6",
+        "assert hitung_huruf('abcdi.') == 3"
+      ]
+    },
+    {
+      "id": 50,
+      "title": "Count Positive and Negative Numbers",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Write a function hitung_positif_negatif(data) that counts how many positive and negative integers appear in the input sequence. The input ends with the sentinel value 0, which is not included in the count. Return a tuple containing the number of positive integers followed by the number of negative integers.",
+      "example": "Input  : hitung_positif_negatif([5, -2, 8, -1, 0])\nOutput : (2, 2)",
+      "solution": "def hitung_positif_negatif(data):\n    positif = 0\n    negatif = 0\n    for angka in data:\n        if angka == 0:\n            break\n        if angka > 0:\n            positif += 1\n        else:\n            negatif += 1\n    return (positif, negatif)",
+      "function_stub": "def hitung_positif_negatif(data):\n    pass",
+      "test_cases": [
+        "assert hitung_positif_negatif([5, -2, 8, -1, 0]) == (2, 2)",
+        "assert hitung_positif_negatif([-3, -4, -5, 0]) == (0, 3)",
+        "assert hitung_positif_negatif([1, 2, 3, 4, 0]) == (4, 0)",
+        "assert hitung_positif_negatif([0]) == (0, 0)"
+      ]
+    },
+    {
+      "id": 51,
+      "title": "Sum of the First n Odd Numbers",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Write a function jumlah_ganjil_pertama(n) that computes the sum of the first n positive odd numbers. Return the sum as an integer.",
+      "example": "Input  : jumlah_ganjil_pertama(5)\nOutput : 25",
+      "solution": "def jumlah_ganjil_pertama(n):\n    total = 0\n    bilangan = 1\n    for _ in range(n):\n        total += bilangan\n        bilangan += 2\n    return total",
+      "function_stub": "def jumlah_ganjil_pertama(n):\n    pass",
+      "test_cases": [
+        "assert jumlah_ganjil_pertama(1) == 1",
+        "assert jumlah_ganjil_pertama(5) == 25",
+        "assert jumlah_ganjil_pertama(10) == 100",
+        "assert jumlah_ganjil_pertama(7) == 49"
+      ]
+    },
+    {
+      "id": 52,
+      "title": "Find the Smallest Number",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Write a function cari_terkecil(data) that returns the smallest integer from the input sequence. The input ends with the sentinel value 0, which is not included in the computation. It is guaranteed that there is at least one integer before the sentinel.",
+      "example": "Input  : cari_terkecil([8, 3, 12, -5, 0])\nOutput : -5",
+      "solution": "def cari_terkecil(data):\n    minimum = data[0]\n    for angka in data:\n        if angka == 0:\n            break\n        if angka < minimum:\n            minimum = angka\n    return minimum",
+      "function_stub": "def cari_terkecil(data):\n    pass",
+      "test_cases": [
+        "assert cari_terkecil([8, 3, 12, -5, 0]) == -5",
+        "assert cari_terkecil([10, 20, 5, 0]) == 5",
+        "assert cari_terkecil([-2, -8, -1, 0]) == -8",
+        "assert cari_terkecil([7, 0]) == 7"
+      ]
+    },
+    {
+      "id": 53,
+      "title": "Last Position of the Smallest Number",
+      "difficulty": "easy",
+      "topic": "Composite",
+      "problem_statement": "Write a function posisi_terakhir_terkecil(data) that returns the position (1-based index) where the smallest integer is found for the last time in the input sequence. The input ends with the sentinel value 0, which is not included in the computation. It is guaranteed that there is at least one integer before the sentinel.",
+      "example": "Input  : posisi_terakhir_terkecil([5, 2, 8, 2, 7, 0])\nOutput : 4",
+      "solution": "def posisi_terakhir_terkecil(data):\n    minimum = data[0]\n    posisi = 1\n    for i, angka in enumerate(data, start=1):\n        if angka == 0:\n            break\n        if angka < minimum:\n            minimum = angka\n            posisi = i\n        elif angka == minimum:\n            posisi = i\n    return posisi",
+      "function_stub": "def posisi_terakhir_terkecil(data):\n    pass",
+      "test_cases": [
+        "assert posisi_terakhir_terkecil([5, 2, 8, 2, 7, 0]) == 4",
+        "assert posisi_terakhir_terkecil([3, 1, 4, 5, 0]) == 2",
+        "assert posisi_terakhir_terkecil([7, 7, 7, 0]) == 3",
+        "assert posisi_terakhir_terkecil([-2, -5, -5, -1, 0]) == 3"
+      ]
+    },
+    {
+      "id": 54,
+      "title": "Planet X Prime Without If Statement",
+      "difficulty": "intermediate",
+      "topic": "Composite",
+      "problem_statement": "Write a function prima_planet_x(n) that determines whether a positive integer is a prime number on Planet X. On Planet X, a prime number is defined as a number with exactly three positive factors. Return True if the number has exactly three factors; otherwise, return False. Do not use any if statement.",
+      "example": "Input  : prima_planet_x(9)\nOutput : True",
+      "solution": "def prima_planet_x(n):\n    return sum(n % i == 0 for i in range(1, n + 1)) == 3",
+      "function_stub": "def prima_planet_x(n):\n    pass",
+      "test_cases": [
+        "assert prima_planet_x(4) == True",
+        "assert prima_planet_x(9) == True",
+        "assert prima_planet_x(16) == False",
+        "assert prima_planet_x(7) == False",
+        "assert prima_planet_x(1) == False"
+      ]
+    },
+    {
+      "id": 55,
+      "title": "Count All-Odd Dice Throws",
+      "difficulty": "intermediate",
+      "topic": "Composite",
+      "problem_statement": "Write a function hitung_lemparan_ganjil(data) that counts how many dice throws have all three dice showing odd values. The input is a sequence of tuples, where each tuple contains the values of three six-sided dice. The game ends when the sum of the three dice is 10. The terminating throw is not included in the count. Do not use any if statement.",
+      "example": "Input  : hitung_lemparan_ganjil([(1, 3, 5), (2, 3, 1), (1, 5, 5), (4, 3, 3)])\nOutput : 2",
+      "solution": "def hitung_lemparan_ganjil(data):\n    jumlah = 0\n    i = 0\n    lanjut = True\n    while i < len(data) and lanjut:\n        d1, d2, d3 = data[i]\n        lanjut = (d1 + d2 + d3 != 10)\n        jumlah += lanjut * (d1 % 2 == 1) * (d2 % 2 == 1) * (d3 % 2 == 1)\n        i += 1\n    return jumlah",
+      "function_stub": "def hitung_lemparan_ganjil(data):\n    pass",
+      "test_cases": [
+        "assert hitung_lemparan_ganjil([(1, 3, 5), (2, 3, 1), (1, 5, 5), (4, 3, 3)]) == 2",
+        "assert hitung_lemparan_ganjil([(2, 2, 2), (3, 3, 3), (4, 3, 3)]) == 1",
+        "assert hitung_lemparan_ganjil([(1, 1, 1), (5, 1, 3), (2, 4, 4)]) == 2",
+        "assert hitung_lemparan_ganjil([(2, 2, 6)]) == 0"
+      ]
+    },
+    {
+      "id": 56,
+      "title": "Count 'go' Substrings",
+      "difficulty": "intermediate",
+      "topic": "Composite",
+      "problem_statement": "Write a function hitung_go(teks) that counts how many times the substring \"go\" appears in the input character sequence. The input ends with the sentinel character '.', which is not included in the computation. Return the total number of occurrences.",
+      "example": "Input  : hitung_go('gogogo.')\nOutput : 3",
+      "solution": "def hitung_go(teks):\n    jumlah = 0\n    for i in range(len(teks) - 1):\n        if teks[i] == '.':\n            break\n        if teks[i:i+2] == 'go':\n            jumlah += 1\n    return jumlah",
+      "function_stub": "def hitung_go(teks):\n    pass",
+      "test_cases": [
+        "assert hitung_go('gogogo.') == 3",
+        "assert hitung_go('gogo.') == 2",
+        "assert hitung_go('gogoog.') == 2",
+        "assert hitung_go('hello.') == 0"
+      ]
+    },
+    {
+      "id": 57,
+      "title": "Count Numbers Greater Than the Minimum",
+      "difficulty": "intermediate",
+      "topic": "Composite",
+      "problem_statement": "Write a function hitung_lebih_besar_dari_minimum(data) that counts how many integers in the input sequence are greater than the minimum value. The input ends with the sentinel value 0, which is not included in the computation. It is guaranteed that there is at least one integer before the sentinel.",
+      "example": "Input  : hitung_lebih_besar_dari_minimum([5, 2, 8, 2, 7, 0])\nOutput : 3",
+      "solution": "def hitung_lebih_besar_dari_minimum(data):\n    angka = []\n    for x in data:\n        if x == 0:\n            break\n        angka.append(x)\n    minimum = min(angka)\n    jumlah = 0\n    for x in angka:\n        if x > minimum:\n            jumlah += 1\n    return jumlah",
+      "function_stub": "def hitung_lebih_besar_dari_minimum(data):\n    pass",
+      "test_cases": [
+        "assert hitung_lebih_besar_dari_minimum([5, 2, 8, 2, 7, 0]) == 3",
+        "assert hitung_lebih_besar_dari_minimum([1, 1, 1, 0]) == 0",
+        "assert hitung_lebih_besar_dari_minimum([-3, -1, -3, 2, 0]) == 2",
+        "assert hitung_lebih_besar_dari_minimum([10, 0]) == 0"
+      ]
+    },
+    {
+      "id": 58,
+      "title": "Count Occurrences of the Minimum Value",
+      "difficulty": "intermediate",
+      "topic": "Composite",
+      "problem_statement": "Write a function hitung_minimum(data) that counts how many times the smallest integer appears in the input sequence. The input ends with the sentinel value 0, which is not included in the computation. It is guaranteed that there is at least one integer before the sentinel.",
+      "example": "Input  : hitung_minimum([5, 2, 8, 2, 7, 0])\nOutput : 2",
+      "solution": "def hitung_minimum(data):\n    angka = []\n    for x in data:\n        if x == 0:\n            break\n        angka.append(x)\n    minimum = min(angka)\n    jumlah = 0\n    for x in angka:\n        if x == minimum:\n            jumlah += 1\n    return jumlah",
+      "function_stub": "def hitung_minimum(data):\n    pass",
+      "test_cases": [
+        "assert hitung_minimum([5, 2, 8, 2, 7, 0]) == 2",
+        "assert hitung_minimum([1, 1, 1, 0]) == 3",
+        "assert hitung_minimum([-3, -1, -3, 2, 0]) == 2",
+        "assert hitung_minimum([10, 0]) == 1"
+      ]
+    }
+  ]
+}
