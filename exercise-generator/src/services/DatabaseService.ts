@@ -15,6 +15,10 @@ export interface SeedExercise {
   test_cases: string[];
 }
 
+// JudgeExercise strukturnya identik dengan SeedExercise,
+// dibedakan hanya via type alias untuk kejelasan semantik
+export type JudgeExercise = SeedExercise;
+
 export interface GeneratedExerciseRecord {
   title: string;
   topic: string;
@@ -27,8 +31,6 @@ export interface GeneratedExerciseRecord {
   shot?: string;
   filters_applied?: string[];
 }
-
-// ── Filter result types ───────────────────────────────────────────────────────
 
 export interface CheckResult {
   passed: boolean;
@@ -52,12 +54,14 @@ export interface FilterPayload {
 export class DatabaseService {
   private scriptPath: string;
   private seedJsonPath: string;
+  private judgeJsonPath: string;
   private pythonCmd: string;
 
   constructor(extensionPath: string) {
-    this.scriptPath = path.join(extensionPath, 'tinydb_service.py');
-    this.seedJsonPath = path.join(extensionPath, 'src', 'data', 'seed_exercises_v2.json');
-    this.pythonCmd = this._detectPython();
+    this.scriptPath    = path.join(extensionPath, 'tinydb_service.py');
+    this.seedJsonPath  = path.join(extensionPath, 'src', 'data', 'seed_exercises_v3.json');
+    this.judgeJsonPath = path.join(extensionPath, 'src', 'data', 'judge_exercises.json');
+    this.pythonCmd     = this._detectPython();
   }
 
   private _detectPython(): string {
@@ -97,26 +101,43 @@ export class DatabaseService {
     });
   }
 
+  /**
+   * Import seed exercises (untuk few-shot generator) ke tabel 'seeds'.
+   * Dipanggil sekali saat ekstensi aktif.
+   */
   async importSeeds(): Promise<void> {
     try {
       const result = await this._run(['import_seeds', this.seedJsonPath]);
-      console.log('[ExGen DB]', result);
+      console.log('[ExGen DB] Seeds:', result);
     } catch (err) {
-      console.error('[ExGen DB] Import failed:', err);
+      console.error('[ExGen DB] importSeeds failed:', err);
     }
   }
 
   /**
-   * Ambil seed exercises untuk few-shot examples.
+   * Import judge exercises (untuk difficulty classifier) ke tabel 'judges'.
+   * Dipanggil sekali saat ekstensi aktif, setelah importSeeds.
+   */
+  async importJudges(): Promise<void> {
+    try {
+      const result = await this._run(['import_judges', this.judgeJsonPath]);
+      console.log('[ExGen DB] Judges:', result);
+    } catch (err) {
+      console.error('[ExGen DB] importJudges failed:', err);
+    }
+  }
+
+  /**
+   * Ambil seed exercises untuk few-shot generator.
    *
-   * Prioritas retrieval:
-   *   1. Soal dengan difficulty + topic yang cocok (topic-aware)
-   *   2. Soal dengan difficulty yang sama (topic berbeda) — sebagai pelengkap
-   *   3. Fallback: soal apapun jika pool atas tidak cukup
+   * Prioritas:
+   *   1. difficulty + topic sama
+   *   2. difficulty cocok, topic bebas
+   *   3. fallback semua seeds
    *
-   * @param difficulty - level kesulitan ('easy' | 'intermediate' | 'hard')
-   * @param shotCount  - jumlah contoh yang diambil (0 → array kosong)
-   * @param topic      - topik dari input user (misal "String", "List", "Loop")
+   * @param difficulty - 'easy' | 'intermediate' | 'hard'
+   * @param shotCount  - jumlah contoh (0 → array kosong)
+   * @param topic      - topik dari input user, misal "String", "List"
    */
   async getSeedsForShot(
     difficulty: 'easy' | 'intermediate' | 'hard',
@@ -125,7 +146,6 @@ export class DatabaseService {
   ): Promise<SeedExercise[]> {
     if (shotCount === 0) { return []; }
     try {
-      // Pass topic sebagai argumen ke-4 ke Python script
       const result = await this._run(['get_seeds', difficulty, String(shotCount), topic]);
       return result as SeedExercise[];
     } catch (err) {
@@ -134,11 +154,38 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Ambil judge exercises untuk referensi difficulty classifier.
+   *
+   * Prioritas:
+   *   1. difficulty + topic sama
+   *   2. difficulty cocok, topic bebas
+   *   3. fallback semua judges
+   *
+   * Jumlah judge_count mengikuti shot count yang dipilih user di awal.
+   *
+   * @param difficulty  - 'easy' | 'intermediate' | 'hard'
+   * @param judgeCount  - jumlah referensi (mengikuti shotCount user)
+   * @param topic       - topik dari input user, misal "String", "Iterations"
+   */
+  async getJudgesForCheck(
+    difficulty: 'easy' | 'intermediate' | 'hard',
+    judgeCount: number,
+    topic: string = ''
+  ): Promise<JudgeExercise[]> {
+    if (judgeCount === 0) { return []; }
+    try {
+      const result = await this._run(['get_judges', difficulty, String(judgeCount), topic]);
+      return result as JudgeExercise[];
+    } catch (err) {
+      console.error('[ExGen DB] getJudgesForCheck failed:', err);
+      return [];
+    }
+  }
+
   async getAllExercises(): Promise<SeedExercise[]> {
     try {
-      console.log('[ExGen DB] Calling get_all');
       const result = await this._run(['get_all']);
-      console.log('[ExGen DB] get_all raw result type:', typeof result, 'length:', Array.isArray(result) ? result.length : 'not array');
       return result as SeedExercise[];
     } catch (err) {
       console.error('[ExGen DB] getAllExercises failed:', err);
@@ -159,8 +206,7 @@ export class DatabaseService {
         difficulty: diffMap[exercise.difficulty] ?? exercise.difficulty.toLowerCase()
       };
 
-      const payload = JSON.stringify(normalized);
-      const result = await this._run(['save_generated', payload]);
+      const result = await this._run(['save_generated', JSON.stringify(normalized)]);
       return result as { ok: boolean; id?: number };
     } catch (err) {
       console.error('[ExGen DB] saveGeneratedExercise failed:', err);
@@ -184,16 +230,25 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Jalankan difficulty check dengan judge examples sebagai referensi konkret.
+   *
+   * @param exercise           - soal yang akan dicek
+   * @param expectedDifficulty - difficulty yang diharapkan
+   * @param judgeExamples      - referensi soal dari tabel judges (dikirim ke LLM classifier)
+   */
   async checkDifficulty(
     exercise: GeneratedExerciseRecord,
-    expectedDifficulty: 'Easy' | 'Medium' | 'Hard'
+    expectedDifficulty: 'Easy' | 'Medium' | 'Hard',
+    judgeExamples: JudgeExercise[] = []
   ): Promise<CheckResult> {
     try {
       const result = await this._run([
         'check_difficulty',
         JSON.stringify({
           exercise,
-          expectedDifficulty
+          expectedDifficulty,
+          judgeExamples   // <-- dikirim ke Python untuk dimasukkan ke prompt classifier
         })
       ]);
       return result as CheckResult;

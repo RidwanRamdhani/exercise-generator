@@ -7,6 +7,7 @@ import { DatabaseService } from './services/DatabaseService';
 export async function activate(context: vscode.ExtensionContext) {
   const db = new DatabaseService(context.extensionPath);
   await db.importSeeds();
+  await db.importJudges();
 
   const viewProvider    = new ExerciseViewProvider(context.extensionUri, db);
   const dbViewProvider  = new DatabaseViewProvider(context.extensionUri, db);
