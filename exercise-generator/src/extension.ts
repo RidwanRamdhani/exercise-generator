@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { exerciseGeneratorCommand } from './commands/exerciseGenerator';
 import { ExerciseViewProvider } from './views/ExerciseViewProvider';
+import { exportToMoodleXmlCommand } from './commands/moodleXmlExporter';
 import { DatabaseViewProvider } from './views/DatabaseViewProvider';
 import { DatabaseService } from './services/DatabaseService';
 
@@ -42,7 +43,15 @@ export async function activate(context: vscode.ExtensionContext) {
   showDatabase.command = 'exercise-generator.showDatabase';
   showDatabase.show();
 
-  
+  const exportMoodle = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    98
+  );
+  exportMoodle.text    = '$(export) Export Moodle';
+  exportMoodle.tooltip = 'Export exercise ke Moodle XML (CodeRunner)';
+  exportMoodle.command = 'exercise-generator.exportToMoodleXml';
+  exportMoodle.show();
+
   const moreExerciseCmd = vscode.commands.registerCommand(
     'exercise-generator.moreExercise',
     () => exerciseGeneratorCommand(viewProvider, db, context.extensionPath)
@@ -52,12 +61,18 @@ export async function activate(context: vscode.ExtensionContext) {
     'exercise-generator.showDatabase',
     () => vscode.commands.executeCommand('databaseView.focus')
   );
+  const exportMoodleCmd = vscode.commands.registerCommand(          
+    'exercise-generator.exportToMoodleXml',
+    () => exportToMoodleXmlCommand(db, context.extensionPath)
+  );
 
   context.subscriptions.push(
     moreExercise,
     showDatabase,
+    exportMoodle,
     moreExerciseCmd,
     showDatabaseCmd,
+    exportMoodleCmd,
     view,
     dbView
   );

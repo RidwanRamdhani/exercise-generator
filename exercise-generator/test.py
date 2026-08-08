@@ -1,10 +1,17 @@
-def sapa_tamu():
-    tamu = ['Andi', 'Budi', 'Citra']
-    hasil = []
-    for nama in tamu:
-        hasil.append(f'Halo {nama}, selamat datang!')
-    return hasil
-    
-assert sapa_tamu() == ['Halo Andi, selamat datang!', 'Halo Budi, selamat datang!', 'Halo Citra, selamat datang!']
-assert len(sapa_tamu()) == 3
-assert all('Halo' in x for x in sapa_tamu())
+def hitung_minimum(data):
+    angka = []
+    for x in data:
+        if x == 0:
+            break
+        angka.append(x)
+        minimum = min(angka)
+        jumlah = 0
+        for x in angka:
+            if x == minimum:
+                jumlah += 1
+    return jumlah
+
+assert hitung_minimum([5, 2, 8, 2, 7, 0]) == 2
+assert hitung_minimum([1, 1, 1, 0]) == 3
+assert hitung_minimum([-3, -1, -3, 2, 0]) == 2
+assert hitung_minimum([10, 0]) == 1

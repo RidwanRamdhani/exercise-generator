@@ -257,4 +257,61 @@ export class DatabaseService {
       return { passed: false, error: 'Difficulty check failed unexpectedly' };
     }
   }
+
+  
+
+    /**
+   * Export exercises dari file JSON ke Moodle XML (CodeRunner python3).
+   *
+   * @param inputPath  - path ke file JSON (bisa seeds / generated exercises)
+   * @param outputPath - path file XML yang akan dihasilkan
+   */
+  async exportMoodleXml(
+    inputPath: string,
+    outputPath: string
+  ): Promise<{ ok: boolean; count?: number; output?: string }> {
+    try {
+      const convertScript = path.join(
+        path.dirname(this.scriptPath),
+        'convert.py'
+      );
+      const result = await this._runScript(convertScript, [inputPath, outputPath]);
+      return result as { ok: boolean; count?: number; output?: string };
+    } catch (err) {
+      console.error('[ExGen DB] exportMoodleXml failed:', err);
+      return { ok: false };
+    }
+  }
+
+  /**
+   * Spawn script Python arbitrer (bukan cuma tinydb_service.py).
+   * Dipakai untuk convert.py yang terpisah dari tinydb_service.
+   */
+  private _runScript(scriptPath: string, args: string[]): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const proc = cp.spawn(this.pythonCmd, [scriptPath, ...args]);
+
+      let stdout = '';
+      let stderr = '';
+
+      proc.stdout.on('data', (data) => { stdout += data.toString(); });
+      proc.stderr.on('data', (data) => { stderr += data.toString(); });
+
+      proc.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(`Python error (code ${code}): ${stderr}`));
+          return;
+        }
+        try {
+          resolve(JSON.parse(stdout.trim()));
+        } catch {
+          reject(new Error(`Failed to parse Python output: ${stdout}`));
+        }
+      });
+
+      proc.on('error', (err) => {
+        reject(new Error(`Failed to spawn Python: ${err.message}`));
+      });
+    });
+  }
 }

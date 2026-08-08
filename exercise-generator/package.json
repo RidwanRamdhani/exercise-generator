@@ -22,6 +22,10 @@
       {
         "command": "exercise-generator.showDatabase",
         "title": "Show Database"
+      },
+      {
+        "command": "exercise-generator.exportToMoodleXml",
+        "title": "ExGen: Export to Moodle XML"
       }
     ],
     "viewsContainers": {
