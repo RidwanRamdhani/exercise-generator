@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { exerciseGeneratorCommand } from './commands/exerciseGenerator';
+import { checkFeedbackCommand } from './commands/feedbackChecker';
 import { ExerciseViewProvider } from './views/ExerciseViewProvider';
 import { DatabaseViewProvider } from './views/DatabaseViewProvider';
 import { DatabaseService } from './services/DatabaseService';
@@ -42,7 +43,17 @@ export async function activate(context: vscode.ExtensionContext) {
   showDatabase.command = 'exercise-generator.showDatabase';
   showDatabase.show();
 
-  
+
+  const checkFeedback = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    98
+  );
+  checkFeedback.text    = '$(checklist) Check Feedback';
+  checkFeedback.tooltip = 'Bandingkan kode kamu di editor aktif terhadap reference solution (AST-based, tanpa LLM)';
+  checkFeedback.command = 'exercise-generator.checkFeedback';
+  checkFeedback.show();
+
+
   const moreExerciseCmd = vscode.commands.registerCommand(
     'exercise-generator.moreExercise',
     () => exerciseGeneratorCommand(viewProvider, db, context.extensionPath)
@@ -53,11 +64,18 @@ export async function activate(context: vscode.ExtensionContext) {
     () => vscode.commands.executeCommand('databaseView.focus')
   );
 
+  const checkFeedbackCmd = vscode.commands.registerCommand(
+    'exercise-generator.checkFeedback',
+    () => checkFeedbackCommand(viewProvider, db)
+  );
+
   context.subscriptions.push(
     moreExercise,
     showDatabase,
+    checkFeedback,
     moreExerciseCmd,
     showDatabaseCmd,
+    checkFeedbackCmd,
     view,
     dbView
   );

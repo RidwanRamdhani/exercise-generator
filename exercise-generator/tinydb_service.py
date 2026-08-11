@@ -5,6 +5,7 @@ import random
 import ast
 import traceback
 from tinydb import TinyDB, Query
+import ast_feedback
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'db.json')
 
@@ -34,10 +35,22 @@ def import_seeds(seed_json_path: str):
         data = json.load(f)
 
     seeds = data.get('seed_exercises', [])
+    normalized_seeds = []
     for seed in seeds:
-        table.insert(seed)
+        item = dict(seed)
+        refs = item.get('reference_solutions')
+        if not isinstance(refs, list) or not refs:
+            solution = item.get('solution', '')
+            if isinstance(solution, str) and solution.strip():
+                item['reference_solutions'] = [{
+                    'id': f"{item.get('id', 'seed')}-legacy",
+                    'technique': 'Default Reference',
+                    'solution': solution
+                }]
+        normalized_seeds.append(item)
+        table.insert(item)
 
-    print(json.dumps({"status": "ok", "imported": len(seeds), "table": TABLE_SEEDS}))
+    print(json.dumps({"status": "ok", "imported": len(normalized_seeds), "table": TABLE_SEEDS}))
 
 
 def import_judges(judge_json_path: str):
@@ -202,6 +215,18 @@ def get_all_exercises():
     table = db.table(TABLE_SEEDS)
     results = table.all()
     difficulty_order = {"easy": 0, "intermediate": 1, "hard": 2}
+
+    for item in results:
+        refs = item.get('reference_solutions')
+        if not isinstance(refs, list) or not refs:
+            solution = item.get('solution', '')
+            if isinstance(solution, str) and solution.strip():
+                item['reference_solutions'] = [{
+                    'id': f"{item.get('id', 'exercise')}-legacy",
+                    'technique': 'Default Reference',
+                    'solution': solution
+                }]
+
     results.sort(key=lambda x: (difficulty_order.get(x.get("difficulty", ""), 99), x.get("id", 0)))
     print(json.dumps(results))
 
@@ -412,6 +437,37 @@ def check_difficulty(payload: dict) -> dict:
     return result
 
 
+def check_feedback(payload: dict) -> dict:
+    """
+    Feedback engine untuk ExGen. Dua bagian yang independen:
+
+      1. Highlight  : AST diff kode siswa vs reference_solutions (statis,
+                      bukan eksekusi) -> dipakai buat squiggly underline
+                      di editor + pesan "Wrong operator", dsb.
+      2. Skor       : dihitung dari berapa test_cases exercise ini yang
+                      lolos saat dijalankan ke kode siswa (real execution,
+                      bukan LLM). Semua test case tetap dijalankan meski
+                      ada yang gagal duluan, supaya skornya proporsional.
+
+    payload:
+      - studentCode         : kode Python yang ditulis siswa
+      - referenceSolutions  : list[str], 1+ kode solusi valid untuk exercise
+                               ini (multi-template matching, mis. teknik
+                               sorting berbeda -> dipilih yang mismatch-nya
+                               paling sedikit buat highlight)
+      - testCases           : list[str], assert statements dari exercise ini
+                               (opsional -- kalau kosong, fallback ke skor
+                               lama berbasis proporsi AST checkpoint)
+    """
+    student_code = payload.get("studentCode", "")
+    reference_solutions = payload.get("referenceSolutions", [])
+    test_cases = payload.get("testCases", [])
+
+    result = ast_feedback.get_feedback(student_code, reference_solutions, test_cases)
+    print(json.dumps(result))
+    return result
+
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({"error": "No command provided"}))
@@ -500,6 +556,13 @@ def main():
             sys.exit(1)
         payload = json.loads(sys.argv[2])
         check_difficulty(payload)
+
+    elif command == 'check_feedback':
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Missing payload"}))
+            sys.exit(1)
+        payload = json.loads(sys.argv[2])
+        check_feedback(payload)
 
     else:
         print(json.dumps({"error": f"Unknown command: {command}"}))

@@ -3,7 +3,7 @@ import * as https from 'https';
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ExerciseConfig, Difficulty, Shot } from '../types/exercise';
+import { ExerciseConfig, Difficulty, Shot, ReferenceSolution } from '../types/exercise';
 import {
   askForTopic,
   askForDifficulty,
@@ -146,7 +146,7 @@ export async function exerciseGeneratorCommand(
             difficulty:      config.difficulty,
             shot:            config.shot,
             filters_applied: config.filters,
-            solution:        result.solution ?? ''
+            solution:        getPrimaryReference(result).solution
           },
           config.difficulty,
           judgeExamples  // <-- judge examples dikirim ke classifier
@@ -183,6 +183,14 @@ export async function exerciseGeneratorCommand(
         diffCheckStatus || 'passed', '', ''
       );
 
+      // FIX: `solution` sebelumnya TIDAK disertakan di sini, jadi
+      // exercise.solution selalu undefined begitu diteruskan ke
+      // ExerciseViewProvider -> _docExerciseMap. Akibatnya feedbackChecker.ts
+      // (yang mengecek `!exercise.solution`) selalu menganggap dokumen
+      // "isn't linked", padahal exercise-nya sendiri ketemu -- cuma reference
+      // solution-nya kosong. `solution` TETAP tidak pernah dirender ke
+      // webview (lihat ExerciseViewProvider._update yang strip field ini),
+      // jadi menambahkannya di sini aman, tidak bocor ke UI.
       const exercise: Omit<GeneratedExercise, 'id'> = {
         title:             result.title,
         topic:             config.topic,
@@ -191,6 +199,8 @@ export async function exerciseGeneratorCommand(
         example:           result.example,
         function_stub:     result.function_stub,
         test_cases:        result.test_cases,
+        reference_solutions: result.reference_solutions,
+        solution:          getPrimaryReference(result).solution,
         shot:              config.shot,
         filters_applied:   config.filters
       };
@@ -309,6 +319,7 @@ type LLMExercise = {
   example: string;
   function_stub: string;
   test_cases: string[];
+  reference_solutions?: ReferenceSolution[];
   solution?: string;
 };
 
@@ -331,40 +342,48 @@ function buildMessages(
   const systemMessage: ChatMessage = {
     role: 'system',
     content:
-      'You are a helpful teaching assistant for undergraduates who are learning ' +
-      'introductory programming in Python. You need to generate Python exercises ' +
-      'for students to practice.\n\n' +
-      'There are three levels of difficulty for the exercises:\n' +
-      'Easy: most students will solve the problem quickly with a few lines of code.\n' +
-      'Intermediate: most students will take more time to solve the problem, and ' +
-      'they need to write more code. Many students, but not all, will be able to ' +
-      'solve the problem in the end.\n' +
-      'Hard: most students will take a lot of time to solve the problem. Many of ' +
-      'them will not be able to solve the problem in the end.\n\n' +
-      'For each exercise you generate, respond ONLY with valid JSON containing ' +
-      'these fields: title, problem_statement, example, function_stub, ' +
-      'test_cases, solution.\n' +
-      'The function_stub must include a Python function definition ending with pass.\n' +
+      'You are a helpful teaching assistant for undergraduates learning introductory Python. ' +
+      'Generate high-quality programming exercises and verified reference implementations.\n\n' +
+      'Difficulty definitions:\n' +
+      'Easy: straightforward logic and basic concepts.\n' +
+      'Intermediate: combines concepts and requires more reasoning.\n' +
+      'Hard: requires deeper reasoning and advanced problem solving.\n\n' +
+      'REFERENCE-SOLUTION RULES:\n' +
+      '1. Every exercise MUST contain reference_solutions, an array of valid implementations.\n' +
+      '2. Do NOT generate arbitrary duplicate solutions.\n' +
+      '3. If the problem has one natural approach, generate exactly one reference solution.\n' +
+      '4. If the problem explicitly allows multiple algorithmic techniques, generate one reference for each important distinct technique, normally 2-4.\n' +
+      '5. Every reference must solve the SAME problem and pass the SAME test_cases.\n' +
+      '6. Each reference must have a stable id, concise technique name, and complete Python implementation.\n' +
+      '7. Do not put explanations inside solution code.\n' +
+      '8. Do not label a solution with a technique it does not actually use.\n\n' +
+      'Return ONLY valid JSON. Required fields: title, problem_statement, example, function_stub, test_cases, reference_solutions.\n' +
+      'function_stub must be a Python function definition ending with pass.\n' +
       'test_cases must be an array of assert strings.\n' +
-      'solution must be the complete correct Python implementation.'
+      'reference_solutions must be an array of objects with id, technique, solution.\n' +
+      'The first reference_solutions entry is the canonical/default reference.\n' +
+      'For simple exercises, one reference is preferable to unnecessary duplication.'
   };
 
   const messages: ChatMessage[] = [systemMessage];
 
   for (const ex of fewShotExamples) {
-    messages.push({
-      role: 'user',
-      content: `Give me a ${difficultyLabel} Python exercise.`
-    });
+    const refs = Array.isArray(ex.reference_solutions) && ex.reference_solutions.length > 0
+      ? ex.reference_solutions
+      : ex.solution
+        ? [{ id: `${ex.id ?? 'seed'}-legacy`, technique: 'Default Reference', solution: ex.solution }]
+        : [];
+
+    messages.push({ role: 'user', content: `Give me a ${difficultyLabel} Python exercise.` });
     messages.push({
       role: 'assistant',
       content: `Here is one ${difficultyLabel} Python exercise:\n${JSON.stringify({
-        title:            ex.title,
+        title: ex.title,
         problem_statement: ex.problem_statement,
-        example:          ex.example ?? '',
-        function_stub:    ex.function_stub ?? `def solution():\n    pass`,
-        test_cases:       ex.test_cases ?? [],
-        solution:         ex.solution ?? ''
+        example: ex.example ?? '',
+        function_stub: ex.function_stub ?? `def solution():\n    pass`,
+        test_cases: ex.test_cases ?? [],
+        reference_solutions: refs
       }, null, 2)}`
     });
   }
@@ -374,10 +393,10 @@ function buildMessages(
     role: 'user',
     content: isZeroShot
       ? `Give me 5 ${difficultyLabel} Python exercises using this keyword: ${config.topic}. ` +
-        `Return a JSON array where each element has fields: title, problem_statement, example, function_stub, test_cases, solution. ` +
-        `Return JSON only.`
+        'Return a JSON array. Each element must have title, problem_statement, example, function_stub, test_cases, reference_solutions. ' +
+        'Choose the number of reference solutions based on genuinely distinct valid techniques. Return JSON only.'
       : `Good. I want 5 more ${difficultyLabel} Python exercises using this keyword: ${config.topic}. ` +
-        `Print the result with the same format as the previous ones. Return a JSON array only.`
+        'Use the same JSON format. Include reference_solutions and only include multiple references when there are genuinely distinct valid techniques. Return a JSON array only.'
   });
 
   return messages;
@@ -495,14 +514,40 @@ function parseJsonFromContent(content: string): LLMExercise | LLMExercise[] {
   return JSON.parse(match[0]) as LLMExercise | LLMExercise[];
 }
 
+function normalizeReferenceSolutions(data: LLMExercise): ReferenceSolution[] {
+  if (Array.isArray(data.reference_solutions)) {
+    return data.reference_solutions
+      .filter((ref): ref is ReferenceSolution =>
+        !!ref && typeof ref.id === 'string' && typeof ref.technique === 'string' &&
+        typeof ref.solution === 'string' && ref.solution.trim().length > 0
+      )
+      .map((ref, index) => ({
+        id: ref.id.trim() || `reference-${index + 1}`,
+        technique: ref.technique.trim() || `Approach ${index + 1}`,
+        solution: ref.solution,
+        ...(ref.explanation ? { explanation: ref.explanation } : {})
+      }));
+  }
+  if (typeof data.solution === 'string' && data.solution.trim()) {
+    return [{ id: 'legacy-default-reference', technique: 'Default Reference', solution: data.solution }];
+  }
+  return [];
+}
+
 function validateLLMExercise(data: LLMExercise): void {
-  if (!data || typeof data !== 'object') { throw new Error('LLM response is empty'); }
+  if (!data || typeof data !== 'object') throw new Error('LLM response is empty');
   for (const key of ['title', 'problem_statement', 'example', 'function_stub'] as const) {
-    if (!data[key] || typeof data[key] !== 'string') {
-      throw new Error(`LLM response missing ${key}`);
-    }
+    if (!data[key] || typeof data[key] !== 'string') throw new Error(`LLM response missing ${key}`);
   }
-  if (!Array.isArray(data.test_cases) || data.test_cases.length === 0) {
-    throw new Error('LLM response missing test_cases');
-  }
+  if (!Array.isArray(data.test_cases) || data.test_cases.length === 0) throw new Error('LLM response missing test_cases');
+  const refs = normalizeReferenceSolutions(data);
+  if (refs.length === 0) throw new Error('LLM response missing reference_solutions');
+  data.reference_solutions = refs;
+  data.solution = refs[0].solution;
+}
+
+function getPrimaryReference(data: LLMExercise): ReferenceSolution {
+  const refs = normalizeReferenceSolutions(data);
+  if (refs.length === 0) throw new Error(`Exercise "${data.title}" has no valid reference solution`);
+  return refs[0];
 }

@@ -1,6 +1,13 @@
 import * as cp from 'child_process';
 import * as path from 'path';
 
+export interface ReferenceSolution {
+  id: string;
+  technique: string;
+  solution: string;
+  explanation?: string;
+}
+
 export interface SeedExercise {
   id: number;
   title: string;
@@ -10,7 +17,8 @@ export interface SeedExercise {
   keywords?: string[];
   problem_statement: string;
   example: string;
-  solution: string;
+  solution?: string;
+  reference_solutions?: ReferenceSolution[];
   function_stub?: string;
   test_cases: string[];
 }
@@ -27,7 +35,8 @@ export interface GeneratedExerciseRecord {
   example: string;
   function_stub: string;
   test_cases: string[];
-  solution: string;
+  solution?: string;
+  reference_solutions?: ReferenceSolution[];
   shot?: string;
   filters_applied?: string[];
 }
@@ -47,6 +56,69 @@ export interface FilterResult {
 export interface FilterPayload {
   solution: string;
   test_cases: string[];
+}
+
+// ── AST-based feedback (bukan LLM) ──────────────────────────────────────────
+
+export interface FeedbackDiagnostic {
+  line: number;
+  col: number;
+  end_line: number;
+  end_col: number;
+  message: string;
+  detail: string;
+  topic: string;
+  severity: 'error' | 'warning';
+}
+
+export interface FeedbackTestCaseResult {
+  index: number;
+  test: string;
+  passed: boolean;
+  error: string | null;
+}
+
+export interface FeedbackTestSummary {
+  total: number;
+  passed_count: number;
+  results: FeedbackTestCaseResult[];
+}
+
+export function getReferenceSolutions(exercise: { id?: number | string; solution?: string; reference_solutions?: ReferenceSolution[] }): ReferenceSolution[] {
+  if (Array.isArray(exercise.reference_solutions) && exercise.reference_solutions.length > 0) {
+    return exercise.reference_solutions.filter(ref => typeof ref?.solution === 'string' && ref.solution.trim().length > 0);
+  }
+  if (typeof exercise.solution === 'string' && exercise.solution.trim()) {
+    return [{ id: `${exercise.id ?? 'exercise'}-legacy`, technique: 'Default Reference', solution: exercise.solution }];
+  }
+  return [];
+}
+
+export interface FeedbackResult {
+  compiled: boolean;
+  compile_error: string | null;
+  /** Posisi persis SyntaxError-nya, ada hanya kalau compiled === false. */
+  compile_error_detail?: {
+    line: number;
+    col: number;
+    end_line: number;
+    end_col: number;
+  };
+  /** Semua lokasi syntax error yang berhasil dideteksi. */
+  compile_error_details?: Array<{
+    line: number;
+    col: number;
+    end_line: number;
+    end_col: number;
+    message?: string;
+    detail?: string;
+  }>;
+  score: number;
+  passed: boolean;
+  diagnostics: FeedbackDiagnostic[];
+  /** Ada kalau test_cases dikirim -- ini sumber `score`/`passed` di atas. */
+  test_summary?: FeedbackTestSummary;
+  error?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -255,6 +327,46 @@ export class DatabaseService {
     } catch (err) {
       console.error('[ExGen DB] checkDifficulty failed:', err);
       return { passed: false, error: 'Difficulty check failed unexpectedly' };
+    }
+  }
+
+  /**
+   * Feedback kode siswa (BUKAN LLM). Dua bagian independen:
+   *   - Highlight (diagnostics) : AST diff kode siswa vs referenceSolutions,
+   *     multi-template -- dipakai buat squiggly underline di editor.
+   *   - Skor (score/passed)     : dari berapa testCases yang lolos saat
+   *     dijalankan ke kode siswa (real execution terhadap fungsi siswa,
+   *     bukan terhadap reference). Semua test case tetap dijalankan meski
+   *     ada yang gagal duluan, supaya skornya proporsional (mis. 3/5 -> 0.6).
+   *
+   * @param studentCode         kode yang sedang ditulis siswa di editor
+   * @param referenceSolutions  1+ solusi valid untuk exercise ini (multi-template),
+   *                            dipakai HANYA untuk highlight, bukan untuk skor
+   * @param testCases           assert statements dari exercise ini; sumber skor.
+   *                            Kalau kosong, fallback ke skor lama berbasis AST.
+   */
+  async checkFeedback(
+    studentCode: string,
+    referenceSolutions: ReferenceSolution[],
+    testCases: string[] = []
+  ): Promise<FeedbackResult> {
+    const fallback: FeedbackResult = {
+      compiled: false,
+      compile_error: 'Feedback check failed unexpectedly',
+      score: 0,
+      passed: false,
+      diagnostics: []
+    };
+
+    try {
+      const result = await this._run([
+        'check_feedback',
+        JSON.stringify({ studentCode, referenceSolutions, testCases })
+      ]);
+      return result as FeedbackResult;
+    } catch (err) {
+      console.error('[ExGen DB] checkFeedback failed:', err);
+      return fallback;
     }
   }
 }
