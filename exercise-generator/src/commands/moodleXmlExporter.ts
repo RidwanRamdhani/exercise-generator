@@ -6,31 +6,88 @@ export async function exportToMoodleXmlCommand(
   db: DatabaseService,
   extensionPath: string
 ): Promise<void> {
-  // 1. Minta user pilih file JSON sumber
-  const inputUri = await vscode.window.showOpenDialog({
-    canSelectFiles: true,
-    canSelectFolders: false,
-    canSelectMany: false,
-    defaultUri: vscode.Uri.file(extensionPath),
-    filters: {
-      'JSON files': ['json'],
-      'All files': ['*']
-    },
-    title: 'Pilih file JSON exercise yang akan diexport'
-  });
+  const source = await vscode.window.showQuickPick(
+    [
+      {
+        label: '$(database) Semua exercise dari database',
+        description: 'Export seeds + generated exercises yang tersimpan di extension',
+        value: 'database'
+      },
+      {
+        label: '$(file) Pilih file JSON custom',
+        description: 'Pilih file JSON exercise manual',
+        value: 'file'
+      }
+    ],
+    { placeHolder: 'Pilih sumber exercise untuk export' }
+  );
 
-  if (!inputUri || inputUri.length === 0) {
-    vscode.window.showInformationMessage('[ExGen] Export dibatalkan: tidak ada file yang dipilih.');
+  if (!source) { return; }
+
+  let outputPath: string;
+
+  if (source.value === 'file') {
+    const inputUri = await vscode.window.showOpenDialog({
+      canSelectFiles: true,
+      canSelectFolders: false,
+      canSelectMany: false,
+      defaultUri: vscode.Uri.file(extensionPath),
+      filters: {
+        'JSON files': ['json'],
+        'All files': ['*']
+      },
+      title: 'Pilih file JSON exercise yang akan diexport'
+    });
+
+    if (!inputUri || inputUri.length === 0) {
+      vscode.window.showInformationMessage('[ExGen] Export dibatalkan.');
+      return;
+    }
+
+    const defaultOutputPath = path.join(
+      path.dirname(inputUri[0].fsPath),
+      path.basename(inputUri[0].fsPath, '.json') + '_moodle.xml'
+    );
+
+    const outputUri = await vscode.window.showSaveDialog({
+      defaultUri: vscode.Uri.file(defaultOutputPath),
+      filters: {
+        'XML files': ['xml'],
+        'All files': ['*']
+      },
+      title: 'Simpan Moodle XML sebagai...'
+    });
+
+    if (!outputUri) {
+      vscode.window.showInformationMessage('[ExGen] Export dibatalkan.');
+      return;
+    }
+
+    outputPath = outputUri.fsPath;
+
+    const statusBar = vscode.window.setStatusBarMessage(
+      '$(sync~spin) ExGen: Exporting to Moodle XML...'
+    );
+
+    try {
+      const result = await db.exportMoodleXml(inputUri[0].fsPath, outputPath);
+      if (result.ok) {
+        vscode.window.showInformationMessage(
+          `[ExGen] Berhasil export ${result.count ?? 0} soal ke:\n${outputPath}`
+        );
+      } else {
+        vscode.window.showErrorMessage('[ExGen] Export gagal. Cek log untuk detail.');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`[ExGen] Export error: ${message}`);
+    } finally {
+      statusBar.dispose();
+    }
     return;
   }
 
-  const inputPath = inputUri[0].fsPath;
-
-  // 2. Minta user tentukan path output XML
-  const defaultOutputPath = path.join(
-    path.dirname(inputPath),
-    path.basename(inputPath, '.json') + '_moodle.xml'
-  );
+  const defaultOutputPath = path.join(extensionPath, 'moodle_export.xml');
 
   const outputUri = await vscode.window.showSaveDialog({
     defaultUri: vscode.Uri.file(defaultOutputPath),
@@ -42,23 +99,21 @@ export async function exportToMoodleXmlCommand(
   });
 
   if (!outputUri) {
-    vscode.window.showInformationMessage('[ExGen] Export dibatalkan: tidak ada lokasi penyimpanan.');
+    vscode.window.showInformationMessage('[ExGen] Export dibatalkan.');
     return;
   }
 
-  const outputPath = outputUri.fsPath;
+  outputPath = outputUri.fsPath;
 
-  // 3. Jalankan konversi
   const statusBar = vscode.window.setStatusBarMessage(
-    '$(sync~spin) ExGen: Exporting to Moodle XML...'
+    '$(sync~spin) ExGen: Exporting from database...'
   );
 
   try {
-    const result = await db.exportMoodleXml(inputPath, outputPath);
-
+    const result = await db.exportMoodleXmlFromDb(outputPath);
     if (result.ok) {
       vscode.window.showInformationMessage(
-        `[ExGen] Berhasil export ${result.count ?? 0} soal ke:\n${outputPath}`
+        `[ExGen] Berhasil export ${result.count ?? 0} soal dari database ke:\n${outputPath}`
       );
     } else {
       vscode.window.showErrorMessage('[ExGen] Export gagal. Cek log untuk detail.');

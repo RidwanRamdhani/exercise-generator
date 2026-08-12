@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { exerciseGeneratorCommand } from './commands/exerciseGenerator';
-import { ExerciseViewProvider } from './views/ExerciseViewProvider';
 import { exportToMoodleXmlCommand } from './commands/moodleXmlExporter';
+import { ExerciseViewProvider } from './views/ExerciseViewProvider';
 import { DatabaseViewProvider } from './views/DatabaseViewProvider';
 import { DatabaseService } from './services/DatabaseService';
 

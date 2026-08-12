@@ -146,21 +146,34 @@ def build_question_xml(entry: dict) -> str:
   </question>'''
 
 
-def convert(seeds: dict):
+def convert(seeds):
+    if isinstance(seeds, dict):
+        entries = seeds.values()
+    else:
+        entries = seeds
+
     questions_xml = []
     skipped = 0
-    for entry in seeds.values():
+    for idx, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            print(
+                f"[convert.py] SKIP entry #{idx}: bukan dict, melainkan {type(entry).__name__} = {repr(entry)[:200]}",
+                file=sys.stderr
+            )
+            skipped += 1
+            continue
         try:
             questions_xml.append(build_question_xml(entry))
         except ValueError as e:
             print(f"[convert.py] SKIP soal '{entry.get('title', 'unknown')}': {e}", file=sys.stderr)
             skipped += 1
+
     body = "\n".join(questions_xml)
     xml = f'''<?xml version="1.0" encoding="UTF-8"?>
 <quiz>
 {body}
 </quiz>'''
-    return xml, len(seeds) - skipped, skipped
+    return xml, len(questions_xml), skipped
 
 
 if __name__ == "__main__":
@@ -170,7 +183,24 @@ if __name__ == "__main__":
     with open(input_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    seeds = data["seeds"] if "seeds" in data else data
+    # Support berbagai format JSON:
+    # 1. List langsung: [...]
+    # 2. Dict dengan key "seeds": {"seeds": [...]}
+    # 3. Dict dengan key "seed_exercises": {"seed_exercises": [...]}
+    # 4. Dict dengan key "judges" / "judge_exercises": {"judges": [...]}
+    if isinstance(data, list):
+        seeds = data
+    elif isinstance(data, dict):
+        seeds = (
+            data.get("seeds")
+            or data.get("seed_exercises")
+            or data.get("judges")
+            or data.get("judge_exercises")
+            or data
+        )
+    else:
+        seeds = data
+
     xml_output, converted_count, skipped_count = convert(seeds)
 
     with open(output_path, "w", encoding="utf-8") as f:

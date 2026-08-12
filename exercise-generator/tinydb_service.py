@@ -454,6 +454,25 @@ def main():
     elif command == 'get_all':
         get_all_exercises()
 
+    elif command == 'get_all_for_export':
+        db = get_db()
+        seeds = db.table(TABLE_SEEDS).all()
+        generated = db.table(TABLE_GENERATED).all()
+        judges = db.table(TABLE_JUDGES).all()
+
+        normalized = []
+        for ex in seeds + generated + judges:
+            normalized.append({
+                "title": ex.get("title", ""),
+                "problem_statement": ex.get("problem_statement", ""),
+                "example": ex.get("example", ""),
+                "solution": ex.get("solution", ""),
+                "function_stub": ex.get("function_stub", ""),
+                "test_cases": ex.get("test_cases", []),
+            })
+
+        print(json.dumps(normalized))
+
     elif command == 'save_generated':
         if len(sys.argv) < 3:
             print(json.dumps({"error": "Missing payload"}))

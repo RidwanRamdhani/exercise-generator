@@ -1,4 +1,6 @@
 import * as cp from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 export interface SeedExercise {
@@ -279,6 +281,33 @@ export class DatabaseService {
       return result as { ok: boolean; count?: number; output?: string };
     } catch (err) {
       console.error('[ExGen DB] exportMoodleXml failed:', err);
+      return { ok: false };
+    }
+  }
+
+  async exportMoodleXmlFromDb(
+    outputPath: string
+  ): Promise<{ ok: boolean; count?: number }> {
+    try {
+      const result = await this._run(['get_all_for_export']);
+      const exercises: any[] = Array.isArray(result) ? result : [];
+
+      if (exercises.length === 0) {
+        return { ok: true, count: 0 };
+      }
+
+      const tempDir = os.tmpdir();
+      const tempInput = path.join(tempDir, `exgen_export_${Date.now()}.json`);
+      fs.writeFileSync(tempInput, JSON.stringify(exercises, null, 2), 'utf8');
+
+      const convertScript = path.join(path.dirname(this.scriptPath), 'convert.py');
+      const convertResult = await this._runScript(convertScript, [tempInput, outputPath]);
+
+      try { fs.unlinkSync(tempInput); } catch {}
+
+      return convertResult as { ok: boolean; count?: number };
+    } catch (err) {
+      console.error('[ExGen DB] exportMoodleXmlFromDb failed:', err);
       return { ok: false };
     }
   }
