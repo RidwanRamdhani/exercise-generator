@@ -90,14 +90,14 @@ export async function exportToMoodleXmlCommand(
   const scope = await vscode.window.showQuickPick(
     [
       {
-        label: '$(database) Semua exercise',
-        description: 'Export semua exercise dari database (seeds + generated + judges)',
-        value: 'all'
-      },
-      {
         label: '$(circle-slash) Belum pernah diekspor',
         description: 'Hanya exercise yang belum pernah dimasukkan ke LMS',
         value: 'unexported'
+      },
+      {
+        label: '$(database) Semua exercise',
+        description: 'Export semua exercise dari database (seeds + generated)',
+        value: 'all'
       }
     ],
     { placeHolder: 'Pilih exercise yang akan diexport' }

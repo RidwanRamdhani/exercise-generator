@@ -309,12 +309,12 @@ export class DatabaseService {
 
       // Hanya mark exported jika konversi berhasil
       if (convertResult.ok && options?.markExported) {
-        const generatedIds = exercises
-          .filter((ex: any) => ex.source === 'generated' && ex.id != null)
-          .map((ex: any) => ex.id);
+        const exportItems = exercises
+          .filter((ex: any) => (ex.source === 'generated' || ex.source === 'seed') && ex.id !== null)
+          .map((ex: any) => ({ id: ex.id, source: ex.source }));
 
-        if (generatedIds.length > 0) {
-          await this.markExercisesExported(generatedIds);
+        if (exportItems.length > 0) {
+          await this.markExercisesExported(exportItems);
         }
       }
 
@@ -331,9 +331,9 @@ export class DatabaseService {
    * 
    * @param ids - Array doc_id (TinyDB internal ID) exercise yang berhasil diekspor
    */
-  async markExercisesExported(ids: number[]): Promise<{ ok: boolean; marked?: number }> {
+  async markExercisesExported(items: Array<{ id: number; source: string }>): Promise<{ ok: boolean; marked?: number }> {
     try {
-      const result = await this._run(['mark_exported', JSON.stringify({ ids })]);
+      const result = await this._run(['mark_exported', JSON.stringify({ items })]);
       return result as { ok: boolean; marked?: number };
     } catch (err) {
       console.error('[ExGen DB] markExercisesExported failed:', err);

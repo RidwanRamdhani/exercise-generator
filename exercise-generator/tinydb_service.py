@@ -198,14 +198,13 @@ def get_judges_for_check(difficulty: str, judge_count: int, topic: str = ""):
 
 
 def get_all_exercises():
-    """Get all exercises dari tabel seeds, generated, dan judges, sorted by difficulty."""
+    """Get all exercises dari tabel seeds dan generated, sorted by difficulty."""
     db = get_db()
     seeds    = db.table(TABLE_SEEDS).all()
     generated = db.table(TABLE_GENERATED).all()
-    judges   = db.table(TABLE_JUDGES).all()
 
     difficulty_order = {"easy": 0, "intermediate": 1, "hard": 2}
-    results = seeds + generated + judges
+    results = seeds + generated
     results.sort(key=lambda x: (difficulty_order.get(x.get("difficulty", ""), 99), x.get("id", 0)))
     print(json.dumps(results))
 
@@ -418,23 +417,28 @@ def check_difficulty(payload: dict) -> dict:
 
 def mark_exported(payload: dict):
     """
-    Tandai generated exercises sebagai sudah diekspor.
-    Payload: { "ids": [1, 2, 3, ...] }
+    Tandai exercises sebagai sudah diekspor.
+    Payload: { "items": [{"id": 1, "source": "seed"}, ...] }
     """
-    ids = payload.get("ids", [])
-    if not ids:
+    items = payload.get("items", [])
+    if not items:
         print(json.dumps({"ok": True, "marked": 0}))
         return
 
     db = get_db()
-    table = db.table(TABLE_GENERATED)
-    
-    # Gunakan UTC timestamp format ISO-8601
+    seeds_table = db.table(TABLE_SEEDS)
+    generated_table = db.table(TABLE_GENERATED)
+
     now = datetime.datetime.utcnow().isoformat() + 'Z'
-    
+
     marked = 0
-    for ex_id in ids:
-        # Cek apakah exercise ada di tabel generated
+    for item in items:
+        ex_id = item.get("id")
+        source = item.get("source", "")
+        if ex_id is None:
+            continue
+
+        table = seeds_table if source == "seed" else generated_table
         ex = table.get(doc_id=ex_id)
         if ex:
             table.update({'last_exported_at': now}, doc_ids=[ex_id])
@@ -492,17 +496,17 @@ def main():
         db = get_db()
         seeds = db.table(TABLE_SEEDS).all()
         generated = db.table(TABLE_GENERATED).all()
-        judges = db.table(TABLE_JUDGES).all()
 
-        # Filter: hanya generated exercises yang belum pernah diekspor
+        # Filter: hanya exercise yang belum pernah diekspor
         if only_unexported:
             generated = [ex for ex in generated if not ex.get('last_exported_at')]
+            seeds = [ex for ex in seeds if not ex.get('last_exported_at')]
 
         normalized = []
-        for ex in seeds + generated + judges:
+        for ex in seeds + generated:
             normalized.append({
                 "id": ex.get("id"),
-                "source": "generated" if ex in generated else ("seed" if ex in seeds else "judge"),
+                "source": "generated" if ex in generated else "seed",
                 "title": ex.get("title", ""),
                 "problem_statement": ex.get("problem_statement", ""),
                 "example": ex.get("example", ""),
