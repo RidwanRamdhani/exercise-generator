@@ -4,6 +4,7 @@ import os
 import random
 import ast
 import traceback
+import datetime
 from tinydb import TinyDB, Query
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'db.json')
@@ -197,11 +198,14 @@ def get_judges_for_check(difficulty: str, judge_count: int, topic: str = ""):
 
 
 def get_all_exercises():
-    """Get all exercises dari tabel seeds, sorted by difficulty."""
+    """Get all exercises dari tabel seeds, generated, dan judges, sorted by difficulty."""
     db = get_db()
-    table = db.table(TABLE_SEEDS)
-    results = table.all()
+    seeds    = db.table(TABLE_SEEDS).all()
+    generated = db.table(TABLE_GENERATED).all()
+    judges   = db.table(TABLE_JUDGES).all()
+
     difficulty_order = {"easy": 0, "intermediate": 1, "hard": 2}
+    results = seeds + generated + judges
     results.sort(key=lambda x: (difficulty_order.get(x.get("difficulty", ""), 99), x.get("id", 0)))
     print(json.dumps(results))
 
@@ -412,6 +416,33 @@ def check_difficulty(payload: dict) -> dict:
     return result
 
 
+def mark_exported(payload: dict):
+    """
+    Tandai generated exercises sebagai sudah diekspor.
+    Payload: { "ids": [1, 2, 3, ...] }
+    """
+    ids = payload.get("ids", [])
+    if not ids:
+        print(json.dumps({"ok": True, "marked": 0}))
+        return
+
+    db = get_db()
+    table = db.table(TABLE_GENERATED)
+    
+    # Gunakan UTC timestamp format ISO-8601
+    now = datetime.datetime.utcnow().isoformat() + 'Z'
+    
+    marked = 0
+    for ex_id in ids:
+        # Cek apakah exercise ada di tabel generated
+        ex = table.get(doc_id=ex_id)
+        if ex:
+            table.update({'last_exported_at': now}, doc_ids=[ex_id])
+            marked += 1
+
+    print(json.dumps({"ok": True, "marked": marked}))
+
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({"error": "No command provided"}))
@@ -455,14 +486,23 @@ def main():
         get_all_exercises()
 
     elif command == 'get_all_for_export':
+        # Argumen opsional: 'true' untuk hanya exercise yang belum diekspor
+        only_unexported = len(sys.argv) >= 3 and sys.argv[2].lower() == 'true'
+        
         db = get_db()
         seeds = db.table(TABLE_SEEDS).all()
         generated = db.table(TABLE_GENERATED).all()
         judges = db.table(TABLE_JUDGES).all()
 
+        # Filter: hanya generated exercises yang belum pernah diekspor
+        if only_unexported:
+            generated = [ex for ex in generated if not ex.get('last_exported_at')]
+
         normalized = []
         for ex in seeds + generated + judges:
             normalized.append({
+                "id": ex.get("id"),
+                "source": "generated" if ex in generated else ("seed" if ex in seeds else "judge"),
                 "title": ex.get("title", ""),
                 "problem_statement": ex.get("problem_statement", ""),
                 "example": ex.get("example", ""),
@@ -499,6 +539,8 @@ def main():
 
         payload['topic'] = matched_topic
 
+        payload.setdefault('last_exported_at', None)
+
         # Simpan ke tabel default (generated exercises)
         default_table = db.table(TABLE_GENERATED)
         new_id        = default_table.insert(payload)
@@ -519,6 +561,13 @@ def main():
             sys.exit(1)
         payload = json.loads(sys.argv[2])
         check_difficulty(payload)
+
+    elif command == 'mark_exported':
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Missing payload"}))
+            sys.exit(1)
+        payload = json.loads(sys.argv[2])
+        mark_exported(payload)
 
     else:
         print(json.dumps({"error": f"Unknown command: {command}"}))

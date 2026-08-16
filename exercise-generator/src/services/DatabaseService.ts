@@ -286,10 +286,12 @@ export class DatabaseService {
   }
 
   async exportMoodleXmlFromDb(
-    outputPath: string
+    outputPath: string,
+    options?: { onlyUnexported?: boolean; markExported?: boolean }
   ): Promise<{ ok: boolean; count?: number }> {
     try {
-      const result = await this._run(['get_all_for_export']);
+      const onlyUnexported = options?.onlyUnexported ?? false;
+      const result = await this._run(['get_all_for_export', String(onlyUnexported)]);
       const exercises: any[] = Array.isArray(result) ? result : [];
 
       if (exercises.length === 0) {
@@ -305,9 +307,36 @@ export class DatabaseService {
 
       try { fs.unlinkSync(tempInput); } catch {}
 
+      // Hanya mark exported jika konversi berhasil
+      if (convertResult.ok && options?.markExported) {
+        const generatedIds = exercises
+          .filter((ex: any) => ex.source === 'generated' && ex.id != null)
+          .map((ex: any) => ex.id);
+
+        if (generatedIds.length > 0) {
+          await this.markExercisesExported(generatedIds);
+        }
+      }
+
       return convertResult as { ok: boolean; count?: number };
     } catch (err) {
       console.error('[ExGen DB] exportMoodleXmlFromDb failed:', err);
+      return { ok: false };
+    }
+  }
+
+  /**
+   * Tandai generated exercises sebagai sudah diekspor ke LMS.
+   * Hanya mempengaruhi exercises di tabel generated (bukan seeds/judges).
+   * 
+   * @param ids - Array doc_id (TinyDB internal ID) exercise yang berhasil diekspor
+   */
+  async markExercisesExported(ids: number[]): Promise<{ ok: boolean; marked?: number }> {
+    try {
+      const result = await this._run(['mark_exported', JSON.stringify({ ids })]);
+      return result as { ok: boolean; marked?: number };
+    } catch (err) {
+      console.error('[ExGen DB] markExercisesExported failed:', err);
       return { ok: false };
     }
   }

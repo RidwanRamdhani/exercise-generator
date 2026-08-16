@@ -87,6 +87,26 @@ export async function exportToMoodleXmlCommand(
     return;
   }
 
+  const scope = await vscode.window.showQuickPick(
+    [
+      {
+        label: '$(database) Semua exercise',
+        description: 'Export semua exercise dari database (seeds + generated + judges)',
+        value: 'all'
+      },
+      {
+        label: '$(circle-slash) Belum pernah diekspor',
+        description: 'Hanya exercise yang belum pernah dimasukkan ke LMS',
+        value: 'unexported'
+      }
+    ],
+    { placeHolder: 'Pilih exercise yang akan diexport' }
+  );
+
+  if (!scope) { return; }
+
+  const onlyUnexported = scope.value === 'unexported';
+
   const defaultOutputPath = path.join(extensionPath, 'moodle_export.xml');
 
   const outputUri = await vscode.window.showSaveDialog({
@@ -105,15 +125,21 @@ export async function exportToMoodleXmlCommand(
 
   outputPath = outputUri.fsPath;
 
+  const scopeLabel = onlyUnexported ? 'belum pernah diekspor' : 'semua';
   const statusBar = vscode.window.setStatusBarMessage(
-    '$(sync~spin) ExGen: Exporting from database...'
+    `$(sync~spin) ExGen: Exporting ${scopeLabel} from database...`
   );
 
   try {
-    const result = await db.exportMoodleXmlFromDb(outputPath);
+    const result = await db.exportMoodleXmlFromDb(outputPath, {
+      onlyUnexported,
+      markExported: true
+    });
+
     if (result.ok) {
+      const action = onlyUnexported ? 'yang belum pernah diekspor' : 'semua';
       vscode.window.showInformationMessage(
-        `[ExGen] Berhasil export ${result.count ?? 0} soal dari database ke:\n${outputPath}`
+        `[ExGen] Berhasil export ${result.count ?? 0} soal ${action} dari database ke:\n${outputPath}`
       );
     } else {
       vscode.window.showErrorMessage('[ExGen] Export gagal. Cek log untuk detail.');

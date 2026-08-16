@@ -13,6 +13,11 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
     this._db = db;
   }
 
+  public async refresh() {
+    await this._loadExercises();
+    this._update();
+  }
+
   async resolveWebviewView(webviewView: vscode.WebviewView) {
     console.log('[DatabaseView] resolveWebviewView called');
     this._view = webviewView;

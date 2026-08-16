@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { DatabaseService } from '../services/DatabaseService';
+import { DatabaseViewProvider } from './DatabaseViewProvider';
 
 // ── Interface hasil generate dari LLM ────────────────────────────────────────
 export interface GeneratedExercise {
@@ -24,6 +25,7 @@ export interface GeneratedExercise {
   // Metadata generate
   shot?: string;
   filters_applied?: string[];
+  last_exported_at?: string | null;
 }
 
 export class ExerciseViewProvider implements vscode.WebviewViewProvider {
@@ -35,7 +37,8 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
-    db: DatabaseService
+    db: DatabaseService,
+    private readonly _dbViewProvider?: DatabaseViewProvider
   ) {
     this._db = db;
   }
@@ -144,6 +147,8 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
       // Tandai exercise ini sudah tersimpan
       webview.postMessage({ type: 'saveSuccess', id });
       vscode.window.showInformationMessage(`Exercise "${ex.title}" saved to database.`);
+
+      this._dbViewProvider?.refresh();
     } else {
       webview.postMessage({ type: 'saveError', id });
       vscode.window.showErrorMessage(`Failed to save exercise "${ex.title}".`);
@@ -339,6 +344,19 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
     padding: 8px 10px;
   }
   body.horizontal .card-body.hidden { display: block; }
+
+  /* Export status badge */
+  .badge-exported {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    flex-shrink: 0;
+    background: var(--vscode-terminal-ansiGreen, #4caf50);
+    color: #fff;
+    opacity: 0.9;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -481,20 +499,21 @@ export class ExerciseViewProvider implements vscode.WebviewViewProvider {
       }
 
       return \`
-<div class="card">
-  <div class="card-head\${isCollapsed ? ' collapsed' : ''}" data-id="\${ex.id}">
-    <span class="chevron codicon codicon-chevron-down"></span>
-    <span class="card-title">EXERCISE \${ex.id}</span>
-    <button class="btn-icon btn-save \${saveClass}"
-            data-save="\${ex.id}"
-            title="\${saveTitle}"
-            \${saveDisabled}>
-      <i class="codicon \${saveIcon}"></i>
-    </button>
-    <button class="btn-icon btn-arrow codicon codicon-arrow-up"
-            data-send="\${ex.id}"
-            title="Send to Editor"></button>
-  </div>
+  <div class="card">
+   <div class="card-head\${isCollapsed ? ' collapsed' : ''}" data-id="\${ex.id}">
+     <span class="chevron codicon codicon-chevron-down"></span>
+     <span class="card-title">EXERCISE \${ex.id}</span>
+     \${ex.last_exported_at ? \`<span class="badge-exported" title="Diekspor: \${ex.last_exported_at}">Exported</span>\` : ''}
+     <button class="btn-icon btn-save \${saveClass}"
+             data-save="\${ex.id}"
+             title="\${saveTitle}"
+             \${saveDisabled}>
+       <i class="codicon \${saveIcon}"></i>
+     </button>
+     <button class="btn-icon btn-arrow codicon codicon-arrow-up"
+             data-send="\${ex.id}"
+             title="Send to Editor"></button>
+   </div>
   <div class="card-body\${isCollapsed ? ' hidden' : ''}" id="body-\${ex.id}"><b>Topic:</b> \${escapeHtml(ex.topic)}
 
 <b>Problem:</b>

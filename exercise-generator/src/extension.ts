@@ -10,8 +10,8 @@ export async function activate(context: vscode.ExtensionContext) {
   await db.importSeeds();
   await db.importJudges();
 
-  const viewProvider    = new ExerciseViewProvider(context.extensionUri, db);
   const dbViewProvider  = new DatabaseViewProvider(context.extensionUri, db);
+  const viewProvider    = new ExerciseViewProvider(context.extensionUri, db, dbViewProvider);
 
   const view = vscode.window.registerWebviewViewProvider(
     'exerciseView',
