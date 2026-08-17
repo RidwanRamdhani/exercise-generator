@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
+import * as os from 'os';
 import { DatabaseService } from '../services/DatabaseService';
 
 export async function exportToMoodleXmlCommand(
@@ -17,6 +19,11 @@ export async function exportToMoodleXmlCommand(
         label: '$(file) Pilih file JSON custom',
         description: 'Pilih file JSON exercise manual',
         value: 'file'
+      },
+      {
+        label: '$(calendar) Exercise generated pada tanggal tertentu',
+        description: 'Export hanya generated exercises yang dibuat pada tanggal yang dipilih',
+        value: 'exact_date'
       }
     ],
     { placeHolder: 'Pilih sumber exercise untuk export' }
@@ -74,6 +81,77 @@ export async function exportToMoodleXmlCommand(
       if (result.ok) {
         vscode.window.showInformationMessage(
           `[ExGen] Berhasil export ${result.count ?? 0} soal ke:\n${outputPath}`
+        );
+      } else {
+        vscode.window.showErrorMessage('[ExGen] Export gagal. Cek log untuk detail.');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`[ExGen] Export error: ${message}`);
+    } finally {
+      statusBar.dispose();
+    }
+    return;
+  }
+
+  if (source.value === 'exact_date') {
+    const dateInput = await vscode.window.showInputBox({
+      prompt: 'Masukkan tanggal generate (format: YYYY-MM-DD)',
+      placeHolder: '2026-08-17',
+      validateInput: (value) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          return 'Format harus YYYY-MM-DD';
+        }
+        return null;
+      }
+    });
+
+    if (!dateInput) {
+      vscode.window.showInformationMessage('[ExGen] Export dibatalkan.');
+      return;
+    }
+
+    const defaultOutputPath = path.join(extensionPath, `moodle_export_${dateInput}.xml`);
+
+    const outputUri = await vscode.window.showSaveDialog({
+      defaultUri: vscode.Uri.file(defaultOutputPath),
+      filters: {
+        'XML files': ['xml'],
+        'All files': ['*']
+      },
+      title: 'Simpan Moodle XML sebagai...'
+    });
+
+    if (!outputUri) {
+      vscode.window.showInformationMessage('[ExGen] Export dibatalkan.');
+      return;
+    }
+
+    outputPath = outputUri.fsPath;
+
+    const statusBar = vscode.window.setStatusBarMessage(
+      `$(sync~spin) ExGen: Exporting generated exercises for ${dateInput}...`
+    );
+
+    try {
+      const result = await db.getGeneratedSince(dateInput);
+      
+      if (result.length === 0) {
+        vscode.window.showInformationMessage(`[ExGen] Tidak ada exercise yang di-generate pada ${dateInput}.`);
+        statusBar.dispose();
+        return;
+      }
+
+      const tempDir = os.tmpdir();
+      const tempInput = path.join(tempDir, `exgen_export_${Date.now()}.json`);
+      fs.writeFileSync(tempInput, JSON.stringify(result, null, 2), 'utf8');
+
+      const convertResult = await db.runConvertScript(tempInput, outputPath);
+      try { fs.unlinkSync(tempInput); } catch {}
+
+      if (convertResult.ok) {
+        vscode.window.showInformationMessage(
+          `[ExGen] Berhasil export ${convertResult.count ?? 0} soal generated pada ${dateInput} ke:\n${outputPath}`
         );
       } else {
         vscode.window.showErrorMessage('[ExGen] Export gagal. Cek log untuk detail.');

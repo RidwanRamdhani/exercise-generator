@@ -447,6 +447,35 @@ def mark_exported(payload: dict):
     print(json.dumps({"ok": True, "marked": marked}))
 
 
+def get_generated_since(since: str):
+    db = get_db()
+    generated = db.table(TABLE_GENERATED).all()
+
+    filtered = []
+    for ex in generated:
+        generated_at = ex.get('generated_at')
+        if generated_at:
+            # Extract date part from ISO timestamp
+            # "2026-08-17T10:51:45.123456Z" -> "2026-08-17"
+            generated_date = generated_at[:10]
+            if generated_date == since:
+                filtered.append(ex)
+
+    normalized = []
+    for ex in filtered:
+        normalized.append({
+            "id": ex.get("id"),
+            "source": "generated",
+            "title": ex.get("title", ""),
+            "problem_statement": ex.get("problem_statement", ""),
+            "example": ex.get("example", ""),
+            "solution": ex.get("solution", ""),
+            "function_stub": ex.get("function_stub", ""),
+            "test_cases": ex.get("test_cases", []),
+        })
+
+    print(json.dumps(normalized))
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({"error": "No command provided"}))
@@ -517,6 +546,13 @@ def main():
 
         print(json.dumps(normalized))
 
+    elif command == 'get_generated_since':
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Missing since date"}))
+            sys.exit(1)
+        since = sys.argv[2]
+        get_generated_since(since)
+
     elif command == 'save_generated':
         if len(sys.argv) < 3:
             print(json.dumps({"error": "Missing payload"}))
@@ -543,6 +579,8 @@ def main():
 
         payload['topic'] = matched_topic
 
+        now = datetime.datetime.utcnow().isoformat() + 'Z'
+        payload['generated_at'] = now
         payload.setdefault('last_exported_at', None)
 
         # Simpan ke tabel default (generated exercises)

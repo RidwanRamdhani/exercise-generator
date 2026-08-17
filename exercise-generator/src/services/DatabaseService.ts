@@ -325,6 +325,21 @@ export class DatabaseService {
     }
   }
 
+    /**
+   * Ambil generated exercises yang di-generate setelah tanggal tertentu.
+   *
+   * @param since - ISO date string, contoh "2026-08-17"
+   */
+  async getGeneratedSince(since: string): Promise<SeedExercise[]> {
+    try {
+      const result = await this._run(['get_generated_since', since]);
+      return result as SeedExercise[];
+    } catch (err) {
+      console.error('[ExGen DB] getGeneratedSince failed:', err);
+      return [];
+    }
+  }
+
   /**
    * Tandai generated exercises sebagai sudah diekspor ke LMS.
    * Hanya mempengaruhi exercises di tabel generated (bukan seeds/judges).
@@ -371,5 +386,14 @@ export class DatabaseService {
         reject(new Error(`Failed to spawn Python: ${err.message}`));
       });
     });
+  }
+
+  /**
+   * Jalankan convert.py untuk konversi JSON -> Moodle XML.
+   * Dipakai oleh export by date agar bisa akses _runScript tanpa Reflection.
+   */
+  async runConvertScript(inputPath: string, outputPath: string): Promise<any> {
+    const convertScript = path.join(path.dirname(this.scriptPath), 'convert.py');
+    return this._runScript(convertScript, [inputPath, outputPath]);
   }
 }
