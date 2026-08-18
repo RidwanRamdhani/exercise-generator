@@ -150,6 +150,13 @@ export async function exportToMoodleXmlCommand(
       try { fs.unlinkSync(tempInput); } catch {}
 
       if (convertResult.ok) {
+        const exportItems = result
+          .filter((ex: any) => (ex.source === 'generated' || ex.source === 'seed') && ex.id !== null)
+          .map((ex: any) => ({ id: ex.id, source: ex.source }));
+        if (exportItems.length > 0) {
+          await db.markExercisesExported(exportItems);
+        }
+
         vscode.window.showInformationMessage(
           `[ExGen] Berhasil export ${convertResult.count ?? 0} soal generated pada ${dateInput} ke:\n${outputPath}`
         );
