@@ -15,6 +15,7 @@ export interface SeedExercise {
   solution: string;
   function_stub?: string;
   test_cases: string[];
+  last_exported_at?: string;
 }
 
 // JudgeExercise strukturnya identik dengan SeedExercise,

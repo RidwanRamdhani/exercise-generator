@@ -296,6 +296,28 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
   .badge-medium { background: #f57c00; color: #fff; }
   .badge-hard   { background: #c62828; color: #fff; }
 
+  /* Exported badge */
+  .badge-exported {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+    flex-shrink: 0;
+    opacity: 0.9;
+    background: #2e7d32;
+    color: #fff;
+  }
+  .badge-not-exported {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+    flex-shrink: 0;
+    opacity: 0.9;
+    background: #c62828;
+    color: #fff;
+  }
+
   /* Send-to-editor arrow button */
   .btn-arrow {
     display: flex;
@@ -415,6 +437,13 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
     return '';
   }
 
+  function exportedBadge(ex) {
+    if (ex.last_exported_at) {
+      return '<span class="badge badge-exported" title="Exported to Moodle">Exported</span>';
+    }
+    return '<span class="badge badge-not-exported" title="Not exported">Not Exported</span>';
+  }
+
   /* ── Render ── */
   function render(topics) {
     try {
@@ -462,6 +491,7 @@ export class DatabaseViewProvider implements vscode.WebviewViewProvider {
               <div class="card-head" data-id="\${ex.id}">
                 <span class="card-title">\${escapeHtml(ex.title)}</span>
                 \${diffBadge(ex.difficulty)}
+                \${exportedBadge(ex)}
                 <button class="btn-arrow codicon codicon-arrow-up"
                         data-send="\${ex.id}"
                         title="Send to Editor"></button>
