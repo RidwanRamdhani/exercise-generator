@@ -9,6 +9,18 @@ import sys
 from xml.sax.saxutils import escape as xml_escape
 
 
+DIFFICULTY_DISPLAY = {
+    'easy': 'Easy',
+    'intermediate': 'Medium',
+    'hard': 'Hard',
+}
+
+
+def _normalize_difficulty(raw: str) -> str:
+    key = (raw or '').strip().lower()
+    return DIFFICULTY_DISPLAY.get(key, raw.strip() or 'Medium')
+
+
 def _get_source_segment(source: str, node):
     """Fallback-safe wrapper untuk ekstrak source code dari AST node."""
     segment = ast.get_source_segment(source, node)
@@ -92,7 +104,22 @@ def build_testcase_xml(call_expr: str, expected_value, is_example: bool) -> str:
     </testcase>'''
 
 
+def _category_path(entry: dict) -> str:
+    topic = (entry.get('topic') or 'General').strip()
+    difficulty = _normalize_difficulty(entry.get('difficulty', ''))
+    return f"$course/{topic}/{difficulty}"
+
+
+def build_category_block(category_path: str) -> str:
+    return f'''  <question type="category">
+    <category>
+      <text>{xml_escape(category_path)}</text>
+    </category>
+  </question>'''
+
+
 def build_question_xml(entry: dict) -> str:
+    category_path = _category_path(entry)
     name = xml_escape(entry["title"])
     problem_html = html.escape(entry["problem_statement"]).replace("\n", "<br>")
     example_html = html.escape(entry.get("example", "")).replace("\n", "<br>")
@@ -152,8 +179,9 @@ def convert(seeds):
     else:
         entries = seeds
 
-    questions_xml = []
     skipped = 0
+    category_entries = []
+
     for idx, entry in enumerate(entries):
         if not isinstance(entry, dict):
             print(
@@ -163,17 +191,31 @@ def convert(seeds):
             skipped += 1
             continue
         try:
-            questions_xml.append(build_question_xml(entry))
+            category_path = _category_path(entry)
+            category_entries.append((category_path, build_question_xml(entry)))
         except ValueError as e:
             print(f"[convert.py] SKIP soal '{entry.get('title', 'unknown')}': {e}", file=sys.stderr)
             skipped += 1
 
-    body = "\n".join(questions_xml)
+    grouped = {}
+    ordered_categories = []
+    for category_path, question_xml in category_entries:
+        if category_path not in grouped:
+            ordered_categories.append(category_path)
+            grouped[category_path] = []
+        grouped[category_path].append(question_xml)
+
+    body_parts = []
+    for cp in ordered_categories:
+        body_parts.append(build_category_block(cp))
+        body_parts.extend(grouped[cp])
+
+    body = "\n".join(body_parts)
     xml = f'''<?xml version="1.0" encoding="UTF-8"?>
 <quiz>
 {body}
 </quiz>'''
-    return xml, len(questions_xml), skipped
+    return xml, len(category_entries), skipped
 
 
 if __name__ == "__main__":
