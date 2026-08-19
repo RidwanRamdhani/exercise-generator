@@ -86,6 +86,25 @@ export async function exerciseGeneratorCommand(
   try {
     const { exercises: results, model: usedModel } = await callLLM(config, fewShotExamples, extensionPath);
 
+    // ── Debug log: tampilkan mentah-mentah apa yang digenerate LLM ──────────
+    // Berguna buat verifikasi manual: berapa reference_solutions per soal,
+    // teknik apa aja yang dipilih, dan isi kode solution-nya -- baik buat
+    // ngecek batas maksimal 3 & dedup teknik beneran berlaku pas dites lewat
+    // LLM asli, maupun buat spot-check kualitas/kebenaran tiap solution
+    // secara manual (test case otomatis belum tentu nangkep semua bug).
+    console.log(`[ExGen] LLM (${usedModel}) generated ${results.length} exercise(s):`);
+    for (const result of results) {
+      const refs = result.reference_solutions ?? [];
+      console.log(`[ExGen] ── "${result.title}" -- ${refs.length} reference solution(s) ──`);
+      refs.forEach((ref, idx) => {
+        console.log(`[ExGen]   [${idx + 1}] technique: ${ref.technique}`);
+        console.log(
+          `[ExGen]       solution:\n` +
+          ref.solution.split('\n').map((line: string) => `[ExGen]         ${line}`).join('\n')
+        );
+      });
+    }
+
     let passed  = 0;
     let skipped = 0;
 
@@ -237,6 +256,28 @@ export async function exerciseGeneratorCommand(
 const MAX_SHOT_COLS  = 3;
 const MAX_JUDGE_COLS = 3;
 
+// Batas keras jumlah reference_solutions per exercise. Kenapa harus di sini
+// (bukan cuma di prompt): LLM tidak 100% patuh instruksi -- kadang tetap
+// generate lebih banyak dari yang diminta, terutama untuk soal yang punya
+// banyak teknik terkenal (sorting, searching, dsb). Prompt (di
+// buildMessages) tetap diinstruksikan supaya LLM idealnya sudah membatasi
+// dari awal (hemat token, hasil lebih konsisten) -- tapi enforcement di
+// normalizeReferenceSolutions() adalah jaminan terakhir yang TIDAK
+// bergantung pada kepatuhan LLM.
+const MAX_REFERENCE_SOLUTIONS = 3;
+
+// Batas minimum reference_solutions per exercise. Alasan: untuk topic yang
+// punya built-in shortcut (sorting, searching, dsb), LLM cenderung generate
+// 1 solusi built-in saja karena dianggap "natural approach" -- padahal
+// tujuan ExGen adalah latihan soal, jadi solusi manual (dari nol, tanpa
+// built-in) WAJIB ada mendampingi built-in-nya, atau minimal 2 teknik
+// manual berbeda kalau topicnya memang tidak punya built-in yang relevan.
+// CATATAN: tidak seperti MAX_REFERENCE_SOLUTIONS, batas ini TIDAK bisa
+// di-enforce secara keras di kode (kode tidak bisa "mengarang" solusi
+// tambahan) -- ini hanya dipakai untuk instruksi prompt + warning log kalau
+// LLM masih melanggar. Lihat validateLLMExercise().
+const MIN_REFERENCE_SOLUTIONS = 2;
+
 function computeOverallStatus(unitTestStatus: string, diffCheckStatus: string): string {
   if (unitTestStatus === 'failed' || diffCheckStatus === 'failed') {
     return 'failed';
@@ -349,20 +390,45 @@ function buildMessages(
       'Intermediate: combines concepts and requires more reasoning.\n' +
       'Hard: requires deeper reasoning and advanced problem solving.\n\n' +
       'REFERENCE-SOLUTION RULES:\n' +
-      '1. Every exercise MUST contain reference_solutions, an array of valid implementations.\n' +
-      '2. Do NOT generate arbitrary duplicate solutions.\n' +
-      '3. If the problem has one natural approach, generate exactly one reference solution.\n' +
-      '4. If the problem explicitly allows multiple algorithmic techniques, generate one reference for each important distinct technique, normally 2-4.\n' +
+      `1. Every exercise MUST contain reference_solutions, an array of AT LEAST ${MIN_REFERENCE_SOLUTIONS} ` +
+      `valid implementations, up to a HARD MAXIMUM of ${MAX_REFERENCE_SOLUTIONS}. ` +
+      `Never return fewer than ${MIN_REFERENCE_SOLUTIONS} and never more than ${MAX_REFERENCE_SOLUTIONS}.\n` +
+      '2. If the problem topic has an obvious Python built-in or standard-library shortcut ' +
+      '(e.g. sorting -> sorted()/.sort(), searching -> in/index(), counting -> Counter/count(), ' +
+      'min/max -> min()/max()), you MUST include BOTH of these:\n' +
+      '   a) One reference using the built-in/standard-library approach ' +
+      '(technique name must say so, e.g. "Built-in (sorted())").\n' +
+      '   b) At least one reference implementing the underlying algorithm MANUALLY from scratch, ' +
+      'without relying on that built-in (technique name must name the algorithm, ' +
+      'e.g. "Bubble Sort (Manual)").\n' +
+      '   The built-in reference alone is NEVER sufficient on its own -- it must always be paired ' +
+      'with a manual implementation.\n' +
+      '3. If the topic has NO relevant built-in shortcut (e.g. custom logic, recursion, string ' +
+      `parsing puzzles), generate at least ${MIN_REFERENCE_SOLUTIONS} genuinely distinct MANUAL ` +
+      'techniques/approaches instead. Do not pad with trivial variations of the same logic ' +
+      '(e.g. do not count a for-loop version and a while-loop version of the identical logic as ' +
+      'two distinct techniques -- they must differ algorithmically).\n' +
+      '4. For algorithmic topics with multiple well-known manual approaches (e.g. sorting: ' +
+      'bubble/selection/insertion/merge/quick sort; searching: linear/binary search), prefer ' +
+      'including 2 distinct manual techniques over just 1 manual + 1 built-in, as long as the ' +
+      `total stays within ${MAX_REFERENCE_SOLUTIONS}.\n` +
       '5. Every reference must solve the SAME problem and pass the SAME test_cases.\n' +
       '6. Each reference must have a stable id, concise technique name, and complete Python implementation.\n' +
       '7. Do not put explanations inside solution code.\n' +
       '8. Do not label a solution with a technique it does not actually use.\n\n' +
+      'IMPORTANT ABOUT THE EXAMPLES BELOW (if any are provided in this conversation): those examples ' +
+      'demonstrate the expected JSON FORMAT, writing style, problem phrasing, and code quality ONLY. ' +
+      'They do NOT dictate how many reference_solutions to generate -- even if an example below shows ' +
+      `only 1 reference solution, your own output must still follow rules 1-4 above and contain AT LEAST ` +
+      `${MIN_REFERENCE_SOLUTIONS} reference_solutions. Do not copy the reference_solutions COUNT from the examples.\n\n` +
       'Return ONLY valid JSON. Required fields: title, problem_statement, example, function_stub, test_cases, reference_solutions.\n' +
       'function_stub must be a Python function definition ending with pass.\n' +
       'test_cases must be an array of assert strings.\n' +
-      'reference_solutions must be an array of objects with id, technique, solution.\n' +
-      'The first reference_solutions entry is the canonical/default reference.\n' +
-      'For simple exercises, one reference is preferable to unnecessary duplication.'
+      `reference_solutions must be an array of objects with id, technique, solution, containing ` +
+      `between ${MIN_REFERENCE_SOLUTIONS} and ${MAX_REFERENCE_SOLUTIONS} entries.\n` +
+      'The first reference_solutions entry is the canonical/default reference shown to students -- ' +
+      'prefer putting the MANUAL implementation first when a built-in version is also included, ' +
+      'since this is a learning exercise about understanding the algorithm, not the shortcut.'
   };
 
   const messages: ChatMessage[] = [systemMessage];
@@ -377,7 +443,8 @@ function buildMessages(
     messages.push({ role: 'user', content: `Give me a ${difficultyLabel} Python exercise.` });
     messages.push({
       role: 'assistant',
-      content: `Here is one ${difficultyLabel} Python exercise:\n${JSON.stringify({
+      content: `Here is one ${difficultyLabel} Python exercise (note: format/style reference only, ` +
+        `not a reference for how many reference_solutions to generate):\n${JSON.stringify({
         title: ex.title,
         problem_statement: ex.problem_statement,
         example: ex.example ?? '',
@@ -389,14 +456,21 @@ function buildMessages(
   }
 
   const isZeroShot = fewShotExamples.length === 0;
+  const countReminder =
+    `Regardless of the examples above, every exercise you generate now must have at least ` +
+    `${MIN_REFERENCE_SOLUTIONS} reference_solutions (built-in + manual, or 2+ distinct manual ` +
+    `techniques), per the system rules.`;
+
   messages.push({
     role: 'user',
     content: isZeroShot
       ? `Give me 5 ${difficultyLabel} Python exercises using this keyword: ${config.topic}. ` +
         'Return a JSON array. Each element must have title, problem_statement, example, function_stub, test_cases, reference_solutions. ' +
-        'Choose the number of reference solutions based on genuinely distinct valid techniques. Return JSON only.'
+        `Choose reference solutions per the system rules (built-in+manual where applicable, or 2+ ` +
+        `distinct manual techniques), between ${MIN_REFERENCE_SOLUTIONS} and ${MAX_REFERENCE_SOLUTIONS}. Return JSON only.`
       : `Good. I want 5 more ${difficultyLabel} Python exercises using this keyword: ${config.topic}. ` +
-        'Use the same JSON format. Include reference_solutions and only include multiple references when there are genuinely distinct valid techniques. Return a JSON array only.'
+        `Use the same JSON format as the examples above for style only. ${countReminder} ` +
+        'Return a JSON array only.'
   });
 
   return messages;
@@ -514,19 +588,73 @@ function parseJsonFromContent(content: string): LLMExercise | LLMExercise[] {
   return JSON.parse(match[0]) as LLMExercise | LLMExercise[];
 }
 
+// Batas keras jumlah reference_solutions per exercise. Kenapa harus di sini
+// (bukan cuma di prompt): LLM tidak 100% patuh instruksi -- kadang tetap
+// generate lebih banyak dari yang diminta, terutama untuk soal yang punya
+// banyak teknik terkenal (sorting, searching, dsb). Prompt (di
+// buildMessages) tetap diinstruksikan supaya LLM idealnya sudah membatasi
+// dari awal (hemat token, hasil lebih konsisten) -- tapi kode ini adalah
+// jaminan terakhir yang TIDAK bergantung pada kepatuhan LLM.
 function normalizeReferenceSolutions(data: LLMExercise): ReferenceSolution[] {
   if (Array.isArray(data.reference_solutions)) {
-    return data.reference_solutions
-      .filter((ref): ref is ReferenceSolution =>
-        !!ref && typeof ref.id === 'string' && typeof ref.technique === 'string' &&
-        typeof ref.solution === 'string' && ref.solution.trim().length > 0
-      )
-      .map((ref, index) => ({
-        id: ref.id.trim() || `reference-${index + 1}`,
-        technique: ref.technique.trim() || `Approach ${index + 1}`,
+    const rawCount = data.reference_solutions.length;
+
+    if (rawCount > MAX_REFERENCE_SOLUTIONS) {
+      console.log(
+        `[ExGen] "${data.title}": LLM returned ${rawCount} reference_solutions, ` +
+        `capping to ${MAX_REFERENCE_SOLUTIONS}.`
+      );
+    }
+
+    const normalized: ReferenceSolution[] = [];
+    const seenTechniques = new Set<string>();
+
+    for (const ref of data.reference_solutions) {
+      if (
+        !ref ||
+        typeof ref.id !== 'string' ||
+        typeof ref.technique !== 'string' ||
+        typeof ref.solution !== 'string' ||
+        ref.solution.trim().length === 0
+      ) {
+        continue;
+      }
+
+      const techniqueKey = ref.technique.trim().toLowerCase();
+
+      // Jaga variasi teknik tetap unik -- LLM kadang menulis ulang nama
+      // teknik yang sama dengan sedikit variasi (mis. "Bubble Sort" dan
+      // "Bubble Sort (Iterative)") padahal itu solusi yang sama secara
+      // esensial. Kalau ini dibiarkan, kuota MAX_REFERENCE_SOLUTIONS bisa
+      // habis oleh technique yang sebenarnya duplikat.
+      if (techniqueKey && seenTechniques.has(techniqueKey)) {
+        console.log(
+          `[ExGen] "${data.title}": skipping duplicate technique "${ref.technique}" ` +
+          `(already have a reference with the same technique name).`
+        );
+        continue;
+      }
+
+      normalized.push({
+        id: ref.id.trim() || `reference-${normalized.length + 1}`,
+        technique: ref.technique.trim() || `Approach ${normalized.length + 1}`,
         solution: ref.solution,
         ...(ref.explanation ? { explanation: ref.explanation } : {})
-      }));
+      });
+
+      if (techniqueKey) {
+        seenTechniques.add(techniqueKey);
+      }
+
+      // Hard cap: berhenti begitu kuota tercapai, apapun yang masih
+      // tersisa di response LLM. Ini yang membuat batas maksimal 3 selalu
+      // ditegakkan, terlepas dari berapa banyak yang dikirim LLM.
+      if (normalized.length >= MAX_REFERENCE_SOLUTIONS) {
+        break;
+      }
+    }
+
+    return normalized;
   }
   if (typeof data.solution === 'string' && data.solution.trim()) {
     return [{ id: 'legacy-default-reference', technique: 'Default Reference', solution: data.solution }];
@@ -540,8 +668,21 @@ function validateLLMExercise(data: LLMExercise): void {
     if (!data[key] || typeof data[key] !== 'string') throw new Error(`LLM response missing ${key}`);
   }
   if (!Array.isArray(data.test_cases) || data.test_cases.length === 0) throw new Error('LLM response missing test_cases');
+
   const refs = normalizeReferenceSolutions(data);
   if (refs.length === 0) throw new Error('LLM response missing reference_solutions');
+
+  // Peringatan (bukan error) kalau LLM masih melanggar minimum meski sudah
+  // diinstruksikan di prompt -- exercise tetap dipakai (lebih baik ada 1
+  // solusi daripada exercise-nya hilang total), tapi ini kelihatan di log
+  // buat kamu pantau seberapa sering LLM masih melanggar aturan minimum.
+  if (refs.length < MIN_REFERENCE_SOLUTIONS) {
+    console.warn(
+      `[ExGen] "${data.title}": only ${refs.length} reference_solution(s) generated, ` +
+      `below the minimum of ${MIN_REFERENCE_SOLUTIONS}. LLM did not follow the instruction.`
+    );
+  }
+
   data.reference_solutions = refs;
   data.solution = refs[0].solution;
 }

@@ -102,6 +102,306 @@ def _keyword_similarity(
     ).ratio()
 
 
+# Keyword yang membuka BLOK (diikuti ':' dan body ter-indent). Kalau salah
+# satu keyword ini typo jadi identifier biasa (mis. "if" -> "i"), Python
+# tetap sukses mem-parse baris itu sebagai ekspresi (mis. pemanggilan fungsi
+# "i(...)"), lalu baru meledak jauh setelahnya -- biasanya di ':' penutup
+# blok yang jadi "nyasar". Karena itu heuristik untuk kelompok keyword ini
+# TIDAK boleh dibatasi jarak ke posisi error yang dilaporkan Python (lihat
+# `_find_better_syntax_error_position`), beda dengan typo keyword umum
+# (mis. "eturn" -> "return") yang biasanya tetap dekat dengan posisi error.
+_BLOCK_KEYWORDS = frozenset({
+    "if", "elif", "else", "while", "for",
+    "def", "class", "try", "except", "finally", "with",
+})
+
+# Similarity minimum untuk keyword umum (typo yang posisinya dekat dengan
+# lokasi error yang dilaporkan Python). Contoh: "eturn" -> "return".
+_GENERIC_TYPO_THRESHOLD = 0.75
+
+# Similarity minimum untuk block-keyword di awal statement. Sedikit lebih
+# longgar karena kata pendek seperti "i" vs "if" secara matematis tidak
+# akan pernah setinggi typo kata panjang -- tapi posisinya (awal statement,
+# diikuti pola yang berujung syntax error) sudah jadi sinyal kuat dengan
+# sendirinya, jadi threshold-nya bisa sedikit diturunkan tanpa banyak
+# menambah false positive pada identifier pendek yang valid (mis. "id",
+# "is") karena keduanya tetap di bawah 0.6 terhadap seluruh _BLOCK_KEYWORDS.
+_BLOCK_KEYWORD_THRESHOLD = 0.6
+
+# Pesan SyntaxError yang menandakan masalah STRUKTURAL pada bracket
+# ( '(' '[' '{' ) -- bukan typo satu token. Untuk error jenis ini, posisi
+# yang dilaporkan Python 3.10+ SUDAH akurat (menunjuk ke bracket pembuka
+# yang tidak ditutup / bracket penutup yang tidak berpasangan), jadi tidak
+# perlu -- dan tidak boleh -- dikoreksi lebih lanjut oleh heuristik typo.
+_BRACKET_ERROR_MARKERS = (
+    "was never closed",
+    "unmatched",
+    "does not match",
+    "closing parenthesis",
+    "closing bracket",
+)
+
+
+def _is_bracket_structural_error(msg: Optional[str]) -> bool:
+    """
+    True kalau SyntaxError ini soal bracket yang tidak seimbang
+    ('(', '[', '{' yang tidak ditutup, atau penutup yang salah pasangan).
+    """
+
+    text = (msg or "").lower()
+
+    return any(
+        marker in text
+        for marker in _BRACKET_ERROR_MARKERS
+    )
+
+
+def _tokenize_best_effort(source: str) -> list:
+    """
+    Tokenize `source` seluruhnya, sekuat tokenizer bisa jalan.
+
+    `source` di sini kode yang MEMANG rusak (itulah kenapa kita di sini),
+    jadi tokenizer bisa gagal di tengah jalan. Iterasi manual (bukan
+    `list(...)` langsung) supaya token-token valid sebelum titik
+    kegagalan tetap tersimpan, bukan ikut hilang karena exception.
+    """
+
+    tokens = []
+
+    try:
+        for token in tokenize.generate_tokens(
+            io.StringIO(source).readline
+        ):
+            tokens.append(token)
+    except (
+        tokenize.TokenError,
+        IndentationError
+    ):
+        pass
+
+    return tokens
+
+
+def _find_logical_statement_start(
+    tokens: list,
+    lineno: int,
+    col: int
+):
+    """
+    Cari token PALING AWAL dari logical statement yang mengandung (atau,
+    kalau error-nya di EOF, yang terakhir mendahului) posisi (lineno, col).
+
+    "Logical statement" di sini beda dari "physical line": kalau ada
+    bracket yang masih terbuka, Python menyambung banyak baris fisik jadi
+    SATU logical line (tidak ada token NEWLINE di antaranya, cuma NL).
+    Karena itu batasnya ditentukan lewat token NEWLINE milik tokenizer
+    sendiri, bukan lewat hitung baris manual -- supaya otomatis benar
+    untuk kasus seperti:
+
+        if (
+            a > b
+            or (c == d)
+        ):
+            ...
+
+    yang keseluruhannya (baris "if (" sampai "):") adalah SATU logical
+    statement, walau errornya baru meledak di baris "):" paling bawah.
+    """
+
+    current_start = None
+
+    for token in tokens:
+
+        ttype = token.type
+
+        if ttype == tokenize.NEWLINE:
+            current_start = None
+            continue
+
+        if ttype in (
+            tokenize.NL,
+            tokenize.COMMENT,
+            tokenize.INDENT,
+            tokenize.DEDENT,
+            tokenize.ENCODING,
+        ):
+            continue
+
+        if ttype == tokenize.ENDMARKER:
+            break
+
+        if current_start is None:
+            current_start = token
+
+        start_row, start_col = token.start
+
+        if (start_row, start_col) >= (lineno, col):
+            return current_start
+
+    return current_start
+
+
+def _tokenize_best_effort(source: str) -> list:
+    """
+    Tokenize `source` seluruhnya, sekuat tokenizer bisa jalan.
+
+    `source` di sini kode yang MEMANG rusak (itulah kenapa kita di sini),
+    jadi tokenizer bisa gagal di tengah jalan. Iterasi manual (bukan
+    `list(...)` langsung) supaya token-token valid sebelum titik
+    kegagalan tetap tersimpan, bukan ikut hilang karena exception.
+    """
+
+    tokens = []
+
+    try:
+        for token in tokenize.generate_tokens(
+            io.StringIO(source).readline
+        ):
+            tokens.append(token)
+    except (
+        tokenize.TokenError,
+        IndentationError
+    ):
+        pass
+
+    return tokens
+
+
+def _find_logical_statement_start(
+    tokens: list,
+    lineno: int,
+    col: int
+):
+    """
+    Cari token PALING AWAL dari logical statement yang mengandung (atau,
+    kalau error-nya di EOF, yang terakhir mendahului) posisi (lineno, col).
+
+    "Logical statement" di sini beda dari "physical line": kalau ada
+    bracket yang masih terbuka, Python menyambung banyak baris fisik jadi
+    SATU logical line (tidak ada token NEWLINE di antaranya, cuma NL).
+    Karena itu batasnya ditentukan lewat token NEWLINE milik tokenizer
+    sendiri, bukan lewat hitung baris manual -- supaya otomatis benar
+    untuk kasus seperti:
+
+        if (
+            a > b
+            or (c == d)
+        ):
+            ...
+
+    yang keseluruhannya (baris "if (" sampai "):") adalah SATU logical
+    statement, walau errornya baru meledak di baris "):" paling bawah.
+    """
+
+    current_start = None
+
+    for token in tokens:
+
+        ttype = token.type
+
+        if ttype == tokenize.NEWLINE:
+            current_start = None
+            continue
+
+        if ttype in (
+            tokenize.NL,
+            tokenize.COMMENT,
+            tokenize.INDENT,
+            tokenize.DEDENT,
+            tokenize.ENCODING,
+        ):
+            continue
+
+        if ttype == tokenize.ENDMARKER:
+            break
+
+        if current_start is None:
+            current_start = token
+
+        start_row, start_col = token.start
+
+        if (start_row, start_col) >= (lineno, col):
+            return current_start
+
+    return current_start
+
+
+# Pasangan bracket pembuka -> penutup, dan sebaliknya.
+_BRACKET_PAIRS = {"(": ")", "[": "]", "{": "}"}
+_BRACKET_CLOSERS = {v: k for k, v in _BRACKET_PAIRS.items()}
+
+
+def _find_unbalanced_bracket(tokens: list):
+    """
+    Lacak kecocokan bracket '(' '[' '{' sendiri lewat token stream --
+    TIDAK bergantung pada teks pesan SyntaxError Python sama sekali.
+
+    Kenapa ini perlu, padahal Python sendiri sudah kasih pesan soal
+    bracket: pesan Python (baik "was never closed" maupun "closing
+    parenthesis ')' does not match opening parenthesis '['") melaporkan
+    TITIK KETAHUANNYA parser bahwa ada yang salah. Untuk kasus mismatch
+    (bukan cuma "unclosed" di EOF), titik itu adalah closing bracket yang
+    "nyasar" -- BUKAN posisi bracket pembuka yang sebenarnya butuh
+    pasangan. Contoh:
+
+        (x[1, x[0]))
+             ^               <- '[' ini yang sebenarnya butuh ']'
+                   ^          <- tapi Python nunjuk ke ')' pertama di sini
+
+    Buat siswa, posisi yang actionable adalah yang pertama (bracket
+    pembuka yang menggantung), bukan yang kedua. Karena itu dilacak
+    manual pakai stack: tiap ketemu closer yang gak cocok sama opener
+    paling atas, opener itulah "tersangka" yang butuh ditutup -- bukan
+    closer yang baru saja dibaca.
+
+    Return:
+        Token bracket PEMBUKA yang menggantung (butuh pasangan), token
+        bracket PENUTUP yang berlebih (kalau tidak ada opener yang
+        menggantung sama sekali), atau None kalau bracket balanced.
+    """
+
+    stack = []
+
+    for token in tokens:
+
+        if token.type != tokenize.OP:
+            continue
+
+        text = token.string
+
+        if text in _BRACKET_PAIRS:
+            stack.append(token)
+            continue
+
+        if text in _BRACKET_CLOSERS:
+
+            if (
+                stack
+                and stack[-1].string == _BRACKET_CLOSERS[text]
+            ):
+                # Cocok, pop seperti biasa.
+                stack.pop()
+                continue
+
+            # Closer ini TIDAK cocok dengan opener paling atas.
+            # Kalau masih ada opener yang menggantung di stack, dialah
+            # yang jadi tersangka utama (dia yang butuh pasangan).
+            # Kalau stack sudah kosong, berarti closer ini sendiri yang
+            # berlebih / tidak punya pasangan sama sekali.
+            if stack:
+                return stack[-1]
+
+            return token
+
+    # Tidak ada mismatch eksplisit yang ketemu -- tapi kalau masih ada
+    # opener tersisa di stack sampai akhir token, itu juga menggantung
+    # (kasus klasik "was never closed").
+    if stack:
+        return stack[-1]
+
+    return None
+
+
 def _find_better_syntax_error_position(
     source: str,
     error: SyntaxError
@@ -127,11 +427,24 @@ def _find_better_syntax_error_position(
         eturn
         ^^^^^
 
+    Kasus lain, keyword pembuka blok yang typo (mis. "if" -> "i") bisa
+    membuat Python sukses mem-parse baris itu sebagai ekspresi lain
+    (pemanggilan fungsi), dan baru melempar error JAUH setelahnya (mis. di
+    ':' penutup blok). Untuk kasus ini dicek terpisah lewat posisi
+    (awal statement), bukan lewat jarak ke posisi error yang dilaporkan
+    Python -- lihat `_BLOCK_KEYWORDS`.
+
     PENTING -- ini BUKAN daftar typo yang di-hardcode. Kandidat "kata mirip"
     dihitung dengan membandingkan token asli terhadap SELURUH daftar
     `keyword.kwlist` bawaan Python (if/elif/else/for/while/return/def/...),
     jadi otomatis ikut lengkap kalau Python nambah keyword baru, dan tidak
     perlu ada yang didaftarkan manual satu-satu.
+
+    Kalau SyntaxError-nya soal bracket yang tidak seimbang (lihat
+    `_is_bracket_structural_error`), fungsi ini TIDAK melakukan koreksi
+    apapun dan langsung memakai posisi asli dari Python -- posisi itu
+    sendiri sudah akurat sejak Python 3.10 (PEG parser), dan mencoba
+    mencari "token mirip keyword" di dekatnya cuma berisiko salah arah.
 
     Return:
         (
@@ -191,6 +504,54 @@ def _find_better_syntax_error_position(
     ):
         end_col = col + 1
 
+    default_position = (
+        lineno,
+        col,
+        end_lineno,
+        end_col,
+        None
+    )
+
+    # ----------------------------------------------------------
+    # Error struktural bracket -- cari sendiri lewat bracket-tracker,
+    # JANGAN pakai posisi Python apa adanya (lihat docstring
+    # `_find_unbalanced_bracket` soal kenapa).
+    # ----------------------------------------------------------
+
+    if _is_bracket_structural_error(error.msg):
+
+        all_tokens_for_bracket = _tokenize_best_effort(source)
+
+        unbalanced = _find_unbalanced_bracket(
+            all_tokens_for_bracket
+        )
+
+        if unbalanced is not None:
+
+            b_row, b_col = unbalanced.start
+            _, b_end_col = unbalanced.end
+
+            if unbalanced.string in _BRACKET_PAIRS:
+                # Bracket PEMBUKA yang menggantung -- ini kasus umumnya.
+                expected_close = _BRACKET_PAIRS[unbalanced.string]
+                tag = f"__UNCLOSED_BRACKET__{expected_close}"
+            else:
+                # Bracket PENUTUP yang berlebih, tidak ada opener sama
+                # sekali yang menggantung untuk dipasangkan.
+                tag = "__EXTRA_CLOSING_BRACKET__"
+
+            return (
+                b_row,
+                b_col,
+                b_row,
+                b_end_col,
+                tag
+            )
+
+        # Bracket-tracker sendiri gak nemu masalah (jarang terjadi, tapi
+        # kalau iya, fallback ke posisi asli Python).
+        return default_position
+
 
     # ----------------------------------------------------------
     # Ambil semua baris source
@@ -202,13 +563,7 @@ def _find_better_syntax_error_position(
         lineno < 1
         or lineno > len(source_lines)
     ):
-        return (
-            lineno,
-            col,
-            end_lineno,
-            end_col,
-            None
-        )
+        return default_position
 
 
     # ----------------------------------------------------------
@@ -244,13 +599,7 @@ def _find_better_syntax_error_position(
         pass
 
     if not tokens:
-        return (
-            lineno,
-            col,
-            end_lineno,
-            end_col,
-            None
-        )
+        return default_position
 
 
     # ----------------------------------------------------------
@@ -264,10 +613,74 @@ def _find_better_syntax_error_position(
 
 
     # ----------------------------------------------------------
-    # Cari kandidat typo keyword
+    # Cari kandidat typo keyword.
+    #
+    # Dua jalur independen:
+    #
+    #   1. `block_candidate` -- token PALING AWAL dari logical statement
+    #      (lihat `_find_logical_statement_start`) yang mengandung posisi
+    #      error, dicek kemiripannya ke _BLOCK_KEYWORDS. Tidak dibatasi
+    #      jarak fisik ke posisi error yang dilaporkan Python, karena
+    #      keyword blok yang typo (mis. "if" -> "i") bisa membuat Python
+    #      baru meledak beberapa BARIS setelahnya (lihat docstring di
+    #      atas). Dicari lewat tokenisasi SELURUH source (bukan cuma
+    #      baris error) supaya statement yang menjalar ke banyak baris
+    #      lewat bracket tetap ketemu titik awalnya dengan benar.
+    #      Prioritas lebih tinggi kalau ketemu.
+    #
+    #   2. `generic_candidate` -- token NAME apapun di baris error yang
+    #      dekat dengan posisi error dan mirip keyword manapun. Ini
+    #      perilaku lama, untuk typo seperti "eturn" -> "return".
     # ----------------------------------------------------------
 
-    candidate = None
+    block_candidate = None
+
+    all_tokens = _tokenize_best_effort(source)
+
+    stmt_start_token = _find_logical_statement_start(
+        all_tokens,
+        lineno,
+        col
+    )
+
+    if (
+        stmt_start_token is not None
+        and stmt_start_token.type == tokenize.NAME
+        and stmt_start_token.string not in python_keywords
+    ):
+
+        best_block_kw = None
+        best_block_similarity = 0.0
+
+        for kw in _BLOCK_KEYWORDS:
+
+            similarity = _keyword_similarity(
+                stmt_start_token.string,
+                kw
+            )
+
+            if similarity > best_block_similarity:
+                best_block_similarity = similarity
+                best_block_kw = kw
+
+        if (
+            best_block_kw is not None
+            and best_block_similarity >= _BLOCK_KEYWORD_THRESHOLD
+        ):
+
+            stmt_start_row, stmt_start_col = stmt_start_token.start
+            _, stmt_end_col = stmt_start_token.end
+
+            block_candidate = (
+                stmt_start_row,
+                stmt_start_col,
+                stmt_end_col,
+                stmt_start_token.string,
+                best_block_kw,
+                best_block_similarity
+            )
+
+    generic_candidate = None
 
     for token in tokens:
 
@@ -286,7 +699,7 @@ def _find_better_syntax_error_position(
             continue
 
         # ------------------------------------------------------
-        # Hitung jarak token dari posisi SyntaxError.
+        # Typo keyword umum, dibatasi jarak ke posisi error.
         # ------------------------------------------------------
 
         distance = min(
@@ -297,12 +710,6 @@ def _find_better_syntax_error_position(
         # Jangan mengambil token yang terlalu jauh.
         if distance > 8:
             continue
-
-
-        # ------------------------------------------------------
-        # Cari keyword yang paling mirip -- dibandingkan ke SEMUA
-        # keyword.kwlist, bukan ke daftar typo yang dikurasi manual.
-        # ------------------------------------------------------
 
         best_keyword = None
         best_similarity = 0.0
@@ -319,38 +726,30 @@ def _find_better_syntax_error_position(
                 best_similarity = similarity
                 best_keyword = kw
 
-
-        # ------------------------------------------------------
-        # Threshold typo.
-        #
-        # Contoh yang akan lolos threshold ini secara otomatis
-        # (tanpa didaftarkan satu-satu):
-        #
-        # eturn -> return
-        # els   -> else
-        # retun -> return
-        # retrn -> return
-        #
-        # Kita tidak ingin identifier normal dianggap typo.
-        # ------------------------------------------------------
-
         if (
             best_keyword is not None
-            and best_similarity >= 0.75
+            and best_similarity >= _GENERIC_TYPO_THRESHOLD
         ):
 
             if (
-                candidate is None
-                or best_similarity > candidate[4]
+                generic_candidate is None
+                or best_similarity > generic_candidate[4]
             ):
 
-                candidate = (
+                generic_candidate = (
+                    lineno,
                     start_col,
                     token_end_col,
                     token_text,
                     best_keyword,
                     best_similarity
                 )
+
+    # `block_candidate` selalu diprioritaskan: kalau dia ketemu, itu
+    # tandanya statement-nya kemungkinan besar rusak sejak dari
+    # keyword pembuka bloknya, dan itu penjelasan yang lebih mendasar
+    # dibanding typo NAME biasa yang kebetulan dekat posisi error.
+    candidate = block_candidate or generic_candidate
 
 
     # ----------------------------------------------------------
@@ -360,6 +759,7 @@ def _find_better_syntax_error_position(
     if candidate is not None:
 
         (
+            candidate_line,
             candidate_start,
             candidate_end,
             wrong_word,
@@ -368,9 +768,9 @@ def _find_better_syntax_error_position(
         ) = candidate
 
         return (
-            lineno,
+            candidate_line,
             candidate_start,
-            lineno,
+            candidate_line,
             max(
                 candidate_start + 1,
                 candidate_end
@@ -385,13 +785,7 @@ def _find_better_syntax_error_position(
     # Gunakan posisi asli Python.
     # ----------------------------------------------------------
 
-    return (
-        lineno,
-        col,
-        end_lineno,
-        end_col,
-        None
-    )
+    return default_position
 
 
 # ── Generic multi-error syntax scanner ─────────────────────────────────────
@@ -424,6 +818,14 @@ def _blank_out_span(
     di kode siswa. Untuk kasus itu dipakai `if True:` (selalu valid
     membuka blok apapun). Kalau tidak ada body yang lebih dalam, `pass`
     tetap dipakai karena baris itu memang cuma statement biasa.
+
+    CATATAN: fungsi ini HANYA dipanggil untuk error non-struktural-bracket
+    (lihat `_is_bracket_structural_error`). Error bracket yang tidak
+    seimbang sengaja tidak lewat sini -- span-nya bisa menjalar ke banyak
+    baris/logical-line sekaligus (implicit line joining di dalam bracket),
+    jadi "menetralkan" span itu justru berisiko ikut menghapus/merusak
+    baris-baris valid dan memicu error palsu berantai di pass berikutnya.
+    Lihat `_find_all_syntax_errors` untuk penanganan error bracket.
     """
 
     first = lines[start_lineno - 1]
@@ -478,10 +880,23 @@ def _find_all_syntax_errors(
     Diulang sampai file bersih, tidak ada progres baru, atau `max_passes`
     tercapai (guard rail terhadap kasus pathological / infinite loop).
 
+    PENGECUALIAN -- bracket yang tidak seimbang (unclosed/unmatched '(' '['
+    '{'): error jenis ini SENGAJA tidak dilanjutkan ke pass berikutnya.
+    Bracket yang tidak ditutup membuat Python menggabungkan banyak baris
+    fisik jadi satu "logical line" (implicit line joining) sampai ia
+    ketemu penutupnya atau EOF -- artinya span masalahnya tidak bisa
+    diisolasi dengan aman ke satu baris seperti error lain. Kalau tetap
+    dipaksa "netralkan lalu lanjut", baris-baris valid di dalam span itu
+    ikut ke-blank, dan pass berikutnya akan melaporkan error-error palsu
+    di banyak tempat yang sebenarnya tidak ada masalah -- persis gejala
+    "highlight menyebar ke banyak tempat" untuk satu `]` yang hilang.
+    Karena itu, begitu ketemu error jenis ini, kita laporkan SATU kali
+    (di posisi yang sudah akurat dari Python 3.10+) dan langsung berhenti.
+
     Karena murni mengandalkan `ast.parse()` milik Python sendiri, metode
     ini otomatis mencakup SEMUA jenis SyntaxError -- unterminated string,
-    missing colon, indentation error, bracket tidak seimbang, keyword
-    typo, dll -- tanpa ada satupun pola yang perlu didaftarkan manual.
+    missing colon, indentation error, keyword typo, dll -- tanpa ada
+    satupun pola yang perlu didaftarkan manual.
     """
 
     findings = []
@@ -522,7 +937,19 @@ def _find_all_syntax_errors(
 
             seen_positions.add(position_key)
 
-            if suggestion:
+            if suggestion and suggestion.startswith("__UNCLOSED_BRACKET__"):
+                expected_close = suggestion[len("__UNCLOSED_BRACKET__"):]
+                message = "Unclosed bracket"
+                detail = (
+                    f"This bracket is missing its matching '{expected_close}'"
+                )
+            elif suggestion == "__EXTRA_CLOSING_BRACKET__":
+                message = "Unexpected closing bracket"
+                detail = (
+                    "This closing bracket doesn't have a matching "
+                    "opening bracket"
+                )
+            elif suggestion:
                 message = "Possible syntax error"
                 detail = (
                     f"Did you mean '{suggestion}'? "
@@ -542,6 +969,30 @@ def _find_all_syntax_errors(
                 "topic": "Syntax",
                 "severity": "error",
             })
+
+            # Bracket tidak seimbang -- lihat penjelasan panjang di
+            # docstring di atas. Berhenti di sini, jangan blank & lanjut.
+            if _is_bracket_structural_error(e.msg):
+                break
+
+            # Koreksi "loncat baris" (mis. block-keyword typo yang
+            # dikoreksi ke baris JAUH sebelum baris yang dilaporkan
+            # Python -- lihat `_find_logical_statement_start`) berarti
+            # error yang sebenarnya adalah bagian dari SATU logical
+            # statement yang menjalar melewati banyak baris fisik lewat
+            # bracket. `_blank_out_span` bekerja per baris fisik memakai
+            # posisi ASLI dari Python (`e.lineno`/`e.end_lineno`), yang
+            # cuma mewakili ujung ekor statement itu (mis. baris "):"),
+            # bukan keseluruhan span-nya. Menetralkan cuma ekornya lalu
+            # lanjut parse ulang akan merusak pasangan bracket yang tadinya
+            # valid (mis. "(" di baris awal kehilangan pasangannya) dan
+            # memicu error palsu baru. Jadi berhenti di sini juga.
+            corrected_to_earlier_line = (
+                better_line != (e.lineno or better_line)
+            )
+
+            if suggestion and corrected_to_earlier_line:
+                break
 
             raw_lineno = e.lineno or better_line
             raw_end_lineno = (
@@ -2323,6 +2774,31 @@ def get_feedback(
         )
 
 
+        # ------------------------------------------------------
+        # Kalau SEMUA test case lolos (real execution), kode siswa
+        # sudah terbukti benar secara fungsional -- terlepas dari
+        # teknik/gaya apa yang dipakai. Diagnostic dari diff_nodes
+        # cuma menandakan "struktur AST-nya beda dari reference",
+        # bukan "salah" -- jadi kalau sudah terbukti benar lewat
+        # test case, diagnostic itu HARUS disembunyikan supaya
+        # siswa tidak melihat highlight merah di kode yang
+        # sebenarnya sudah sepenuhnya benar.
+        #
+        # Kalau belum semua lolos, diagnostic tetap ditampilkan
+        # apa adanya -- itu petunjuk berguna soal bagian mana yang
+        # kemungkinan jadi penyebab test case gagal.
+        # ------------------------------------------------------
+
+        visible_diagnostics = (
+            []
+            if passed
+            else [
+                d.to_dict()
+                for d in diagnostics
+            ]
+        )
+
+
         output = {
 
             "compiled": True,
@@ -2333,16 +2809,13 @@ def get_feedback(
 
             "passed": passed,
 
-            "diagnostics": [
-                d.to_dict()
-                for d in diagnostics
-            ],
+            "diagnostics": visible_diagnostics,
 
             "test_summary": test_summary,
         }
 
 
-        if not diagnostics_available:
+        if not diagnostics_available and not passed:
 
             output["error"] = (
                 "No valid reference solution "
